@@ -102,8 +102,61 @@ void PrintChromosome(string chr, long Boundry[], string FAddress)
 	file.close();
 	outputFile.close();
 }
-void GenerateRandomReads(int ReadsNumber,string FAddress,bool Overlap)
+unsigned long LongRandom ()
 {
+
+	unsigned char MyBytes[4];
+	unsigned long MyNumber = 0;
+	unsigned char * ptr = (unsigned char *) &MyNumber;
+
+	MyBytes[0] = rand() % 256; //0-255
+	MyBytes[1] = rand() % 256; //256 - 65535
+	MyBytes[2] = rand() % 256; //65535 -
+	MyBytes[3] = rand() % 256; //16777216
+
+	memcpy (ptr+0, &MyBytes[0], 1);
+	memcpy (ptr+1, &MyBytes[1], 1);
+	memcpy (ptr+2, &MyBytes[2], 1);
+	memcpy (ptr+3, &MyBytes[3], 1);
+
+	return(MyNumber);
+}
+//Read Length = 0 means Random length
+void GenerateRandomReads(string chr,int ReadsNumber,int ReadLength,string FAddress,bool Overlap)
+{
+    const int ReadLength_MaxRandom=220;
+	long* Boundries=GetReferenceBoundry(chr,FAddress);
+	long Pos_start=Boundries[0];
+	long Pos_end=Boundries[1];
+
+	//Check Space for Randoms
+	if (ReadLength==0 && Pos_end-Pos_start<450)
+	{
+		cout << "Not enough space for generating random reads. For random reads minimum length of the reference should be 220";
+		return;
+	}
+	if (Pos_end-Pos_start<2*ReadLength+1)
+	{
+		cout << "Not enough space for generating reads. For generating random reads ";
+      return;
+	}
+//	if (ReadLength==0)
+//	{
+//		ReadLength=rand()%200+20;
+//	}
+	int MaxReadLength=ReadLength;
+	if (MaxReadLength==0)
+		MaxReadLength=ReadLength_MaxRandom;
+
+	//Finding Center of overlapping window
+	long Center_Boundry_Start=MaxReadLength;
+	long Center_Boundry_End=Pos_end-MaxReadLength;
+	long CenterIndex = Center_Boundry_Start+ LongRandom()% (Center_Boundry_End-Center_Boundry_Start);
+
+	//Initializing a window
+
+	//
+
 
 }
 //
