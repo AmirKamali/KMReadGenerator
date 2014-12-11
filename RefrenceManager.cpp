@@ -4,6 +4,7 @@
 #include <string>
 #include <libgen.h>
 #include <string.h>
+#include <sstream>
 
 using namespace std;
 string GetFileDirectory(string FAddress)
@@ -121,6 +122,96 @@ unsigned long LongRandom ()
 
 	return(MyNumber);
 }
+string RemoveCharFromString(char c,string str)
+{
+	cout <<"Data:"<<str.length()<<str<<endl;
+	str.erase(std::remove(str.begin(), str.end(), c), str.end());
+	return str;
+}
+string RemoveCharFromCharArray(char c,char arr[])
+{
+
+	    char Res[strlen(arr)];
+	    int Xindex=0;
+	    for(int i = 0; arr[i] != '\0'; i++)
+	    {
+
+	    	if(arr[i] != c)
+	    	{
+	    		Res[Xindex++]=arr[i];
+	    	}
+	    }
+	    Res[Xindex]='\0';
+	    Res[Xindex+1]='\n';
+	    cout<<"After remove:"<<Res<<endl;
+	    return Res;
+}
+string ReadPosition(int StartIndex,int EndIndex,string FAddr)
+{
+
+		cout<<"Generating chromosome in range:"<<StartIndex<<"-"<<EndIndex<<endl;
+		ifstream file(FAddr);
+		file.seekg(StartIndex,file.beg);
+		string content;
+		string Res="";
+	    char * buffer = new char [EndIndex-StartIndex];
+//	    for (int i=0;i<EndIndex-StartIndex ;i++)
+//	    {
+//	    	buffer[i]='*';
+//	    }
+	    // read data as a block:
+	    file.read (buffer,EndIndex-StartIndex);
+	    cout<<"buffer read:"<<(EndIndex-StartIndex)<<endl;
+	    cout<<"Buffer is:"<<buffer<<endl;
+	    //string xRes=RemoveCharFromCharArray('\n',buffer);
+	   // Res=xRes.substr (0,100);
+		//return xRes;
+	    return buffer;
+}
+
+std::string ReplaceString(std::string subject, const std::string& search,
+                          const std::string& replace) {
+    size_t pos = 0;
+    while((pos = subject.find(search, pos)) != std::string::npos) {
+         subject.replace(pos, search.length(), replace);
+         pos += replace.length();
+    }
+    return subject;
+}
+void GenerateOverlappedReads_RandomSize(int TotalReads,long CenterIndex,string chr,string FAddress)
+{
+
+}
+
+void GenerateOverlappedReads_ConstantSize(int TotalReads,int Length,long CenterIndex,long *Boundries,string FAddress)
+{
+
+//	int FramesNumber=(CenterIndex+Length)-(CenterIndex-Length);
+//	if (TotalReads>FramesNumber)
+//	{
+//		cout << "Reference is too short for the number of reads";
+//		return;
+//	}
+	string ChrAddr=GetFileDirectory(FAddress)+"Reads_"+"x"+"."+ GetFileName(FAddress)+".fa";
+	ofstream outputFile(ChrAddr);
+//	int Steps=FramesNumber/TotalReads;
+//	int Iteration=1;
+//	for (int i=CenterIndex-Length;i<=CenterIndex+Length;i+=Steps)
+//	{
+//		int startindex=i;
+	//	int endindex=i+Length;
+	//	string ReadData=ReadPosition(startindex,endindex,FAddress);
+		string ReadData=ReadPosition(6,56,FAddress);
+		//ReadData=ReadData.substr(0,Length-1);
+		cout<<"Generating Read..."<< ReadData<<endl;
+//		outputFile<<">"<<"Read_"<<Iteration++<<endl;
+		outputFile<<ReadData<<"XXX"<<endl;
+	//}
+
+	outputFile.close();
+
+}
+
 //Read Length = 0 means Random length
 void GenerateRandomReads(string chr,int ReadsNumber,int ReadLength,string FAddress,bool Overlap)
 {
@@ -140,24 +231,26 @@ void GenerateRandomReads(string chr,int ReadsNumber,int ReadLength,string FAddre
 		cout << "Not enough space for generating reads. For generating random reads ";
       return;
 	}
-//	if (ReadLength==0)
-//	{
-//		ReadLength=rand()%200+20;
-//	}
 	int MaxReadLength=ReadLength;
 	if (MaxReadLength==0)
 		MaxReadLength=ReadLength_MaxRandom;
 
-	//Finding Center of overlapping window
+	//Finding Center (overlap index)
 	long Center_Boundry_Start=MaxReadLength;
 	long Center_Boundry_End=Pos_end-MaxReadLength;
 	long CenterIndex = Center_Boundry_Start+ LongRandom()% (Center_Boundry_End-Center_Boundry_Start);
 
-	//Initializing a window
-
-	//
+	if (ReadLength==0)
+	{
+		GenerateOverlappedReads_RandomSize(ReadsNumber,CenterIndex,chr,FAddress);
+	}
+	else
+	{
+		GenerateOverlappedReads_ConstantSize(ReadsNumber,ReadLength,CenterIndex,Boundries,FAddress);
+	}
 
 
 }
+
 //
 
