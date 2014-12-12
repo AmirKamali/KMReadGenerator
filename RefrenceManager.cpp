@@ -63,7 +63,7 @@ long* GetReferenceBoundry(string chr,string FAddress)
 	{
 		if (chr_l.compare(chr)==0)
 		{
-			cout <<"hahaa:"<<chr_l<<" With pos:"<< pos_start<<endl;
+			//cout <<"hahaa:"<<chr_l<<" With pos:"<< pos_start<<endl;
 			file>>chr_l>>pos_end;
 			pos_end-=chr_l.length();
 			break;
@@ -124,7 +124,7 @@ unsigned long LongRandom ()
 }
 string RemoveCharFromString(char c,string str)
 {
-	cout <<"Data:"<<str.length()<<str<<endl;
+	//cout <<endl<<"Data:"<<str.length()<<str<<endl;
 	str.erase(std::remove(str.begin(), str.end(), c), str.end());
 	return str;
 }
@@ -146,26 +146,24 @@ string RemoveCharFromCharArray(char c,char arr[])
 	    cout<<"After remove:"<<Res<<endl;
 	    return Res;
 }
-string ReadPosition(int StartIndex,int EndIndex,string FAddr)
+string ReadPosition(string Chr,int StartIndex,int EndIndex,string FAddr)
 {
-
 		cout<<"Generating chromosome in range:"<<StartIndex<<"-"<<EndIndex<<endl;
+		StartIndex+=Chr.length()+2;
+		EndIndex+=Chr.length()+2;
+
 		ifstream file(FAddr);
 		file.seekg(StartIndex,file.beg);
+		file.clear();
 		string content;
 		string Res="";
 	    char * buffer = new char [EndIndex-StartIndex];
-//	    for (int i=0;i<EndIndex-StartIndex ;i++)
-//	    {
-//	    	buffer[i]='*';
-//	    }
-	    // read data as a block:
+	    for (int i=0;i<EndIndex-StartIndex+1 ;i++)
+	    {
+	    	buffer[i]='\0';
+	    }
 	    file.read (buffer,EndIndex-StartIndex);
-	    cout<<"buffer read:"<<(EndIndex-StartIndex)<<endl;
-	    cout<<"Buffer is:"<<buffer<<endl;
-	    //string xRes=RemoveCharFromCharArray('\n',buffer);
-	   // Res=xRes.substr (0,100);
-		//return xRes;
+
 	    return buffer;
 }
 
@@ -182,38 +180,92 @@ void GenerateOverlappedReads_RandomSize(int TotalReads,long CenterIndex,string c
 {
 
 }
-
-void GenerateOverlappedReads_ConstantSize(int TotalReads,int Length,long CenterIndex,long *Boundries,string FAddress)
+int CountWhiteSpace(string str)
 {
+	int sum=0;
+	for (int i=0;i<str.length();i++)
+	{
+		if (str[i]=='\n')
+			sum++;
+	}
+	return sum;
+}
+char FindVariant(char c)
+{
+	//return 'X';
+	if (c=='A' || c=='a')
+		return 'C';
+	else if (c=='T' || c=='t')
+		return 'A';
+	else if (c=='C' || c=='c')
+		return 'G';
+	else if (c=='G' || c=='g')
+		return 'T';
+}
+void GenerateOverlappedReads_ConstantSize(string chr, int TotalReads,int Length,long startindex,long endindex,long CenterIndex,bool HasVariant,int VariantPercentage,string FAddress)
+{
+	cout<<"Generating Region is :"<<startindex<<"-"<<endindex<<"center is:"<<CenterIndex<<endl;
+	string ReadRegion=ReadPosition(chr,startindex,endindex,FAddress);
+	ReadRegion=RemoveCharFromString('\n',ReadRegion);
 
-//	int FramesNumber=(CenterIndex+Length)-(CenterIndex-Length);
-//	if (TotalReads>FramesNumber)
-//	{
-//		cout << "Reference is too short for the number of reads";
-//		return;
-//	}
+	string ReadRegion_Mu="";
+
+	int NumberOfMutatedReads=0;
+	if (HasVariant)
+	{
+		NumberOfMutatedReads= (TotalReads*VariantPercentage)/100;
+		ReadRegion_Mu=RemoveCharFromString('\n',ReadRegion);
+		ReadRegion_Mu[Length-1]=FindVariant(ReadRegion_Mu[Length-1]);
+		cout <<"With mutations:"<<NumberOfMutatedReads;
+	}
+
+
+	int FramesNumber=Length;
+
+	if (TotalReads>FramesNumber)
+	{
+		cout << "Reference is too short for the number of reads";
+		return;
+	}
+	cout<<"Frame numbers:"<<FramesNumber<<endl;
 	string ChrAddr=GetFileDirectory(FAddress)+"Reads_"+"x"+"."+ GetFileName(FAddress)+".fa";
 	ofstream outputFile(ChrAddr);
-//	int Steps=FramesNumber/TotalReads;
-//	int Iteration=1;
-//	for (int i=CenterIndex-Length;i<=CenterIndex+Length;i+=Steps)
-//	{
-//		int startindex=i;
-	//	int endindex=i+Length;
-	//	string ReadData=ReadPosition(startindex,endindex,FAddress);
-		string ReadData=ReadPosition(6,56,FAddress);
-		//ReadData=ReadData.substr(0,Length-1);
+	outputFile<<ReadRegion<<endl;
+	outputFile<<ReadRegion_Mu<<endl<<endl;
+	int Steps=FramesNumber/TotalReads;
+	int Iteration=1;
+	int read_start=0;
+	int read_end=0;
+	cout<<"Steps::"<<Steps<<endl;
+	for (int i=0;i<TotalReads;i++)
+	{
+
+		read_end+=Length;
+		outputFile<<">"<<"Read"<<Iteration++<<"_"<<read_start<<"-"<<read_end<< endl;
+		string ReadData="";
+		if (NumberOfMutatedReads-->0)
+		{
+			cout<<"Applying mutation"<<endl;
+			ReadData=ReadRegion_Mu.substr(read_start,Length);
+		}
+		else
+		{
+		  ReadData=ReadRegion.substr(read_start,Length);
+
+		}
+
 		cout<<"Generating Read..."<< ReadData<<endl;
-//		outputFile<<">"<<"Read_"<<Iteration++<<endl;
-		outputFile<<ReadData<<"XXX"<<endl;
-	//}
+
+		outputFile<<ReadData<<endl;
+		read_start+=Steps;
+	}
 
 	outputFile.close();
 
 }
 
 //Read Length = 0 means Random length
-void GenerateRandomReads(string chr,int ReadsNumber,int ReadLength,string FAddress,bool Overlap)
+void GenerateReads(string chr,int ReadsNumber,int ReadLength,bool HasVariant,int VariantPercentage,string FAddress,bool Overlap)
 {
     const int ReadLength_MaxRandom=220;
 	long* Boundries=GetReferenceBoundry(chr,FAddress);
@@ -236,17 +288,25 @@ void GenerateRandomReads(string chr,int ReadsNumber,int ReadLength,string FAddre
 		MaxReadLength=ReadLength_MaxRandom;
 
 	//Finding Center (overlap index)
-	long Center_Boundry_Start=MaxReadLength;
-	long Center_Boundry_End=Pos_end-MaxReadLength;
-	long CenterIndex = Center_Boundry_Start+ LongRandom()% (Center_Boundry_End-Center_Boundry_Start);
+	long Center_Boundry_Start=MaxReadLength+MaxReadLength/50;
+	long Center_Boundry_End=Pos_end-(MaxReadLength+MaxReadLength/50);
 
+	//long CenterIndex = Center_Boundry_Start+ LongRandom()% (Center_Boundry_End-Center_Boundry_Start);
+	long CenterIndex=100;
+	cout <<"Center Start:"<<MaxReadLength<<"-"<<Center_Boundry_End <<" centerindex:"<<CenterIndex<<endl;
+
+	if (Center_Boundry_Start>=Center_Boundry_End)
+	{
+		cout <<"Error in finding boundries"<<endl;
+		return;
+	}
 	if (ReadLength==0)
 	{
-		GenerateOverlappedReads_RandomSize(ReadsNumber,CenterIndex,chr,FAddress);
+		//GenerateOverlappedReads_RandomSize(ReadsNumber,CenterIndex,chr,FAddress);
 	}
 	else
 	{
-		GenerateOverlappedReads_ConstantSize(ReadsNumber,ReadLength,CenterIndex,Boundries,FAddress);
+		GenerateOverlappedReads_ConstantSize(chr, ReadsNumber,ReadLength,CenterIndex-ReadLength,CenterIndex+ReadLength+2,CenterIndex,HasVariant,VariantPercentage,FAddress);
 	}
 
 
