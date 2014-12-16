@@ -23,7 +23,7 @@ HOW TO USE ?
 	number should be 1+
 	
 	
-Sample output:
+Sample output :
 
 >Read1_0-50
 TTGGTATTTTCGTCTGGGGGGTGTGCACGCGATAGCATTGCGAGACGCTG
