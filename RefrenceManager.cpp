@@ -75,7 +75,7 @@ long* GetReferenceBoundry(string chr,string FAddress)
 	Res[1]=pos_end;
 	if (pos_end==0)
 	{
-		cout <<"Chromosome not found or index file is not complete.";
+		cout <<"Chromosome not found or index file is not complete."<<endl;
 	}
 	else
 	{
@@ -204,7 +204,7 @@ char FindVariant(char c)
 	return c;
 }
 
-void GenerateOverlappedReads_ConstantSize(string chr, int TotalReads,int Length,long startindex,long endindex,long CenterIndex,VariantType variantT,int VariantPercentage,string FAddress)
+void GenerateOverlappedReads_ConstantSize(string chr, int TotalReads,int Length,long startindex,long endindex,long CenterIndex,VariantType variantT,int VariantPercentage,string FAddress,string output)
 {
 	cout<<"Generating Region is :"<<startindex<<"-"<<endindex<<"center is:"<<CenterIndex<<endl;
 	string ReadRegion=ReadPosition(chr,startindex,endindex,FAddress);
@@ -218,23 +218,30 @@ void GenerateOverlappedReads_ConstantSize(string chr, int TotalReads,int Length,
 		NumberOfMutatedReads= (TotalReads*VariantPercentage)/100;
 		ReadRegion_Mu=RemoveCharFromString('\n',ReadRegion);
 		if (variantT==VariantTypeSubstitution)
-			ReadRegion_Mu[Length-1]=FindVariant(ReadRegion_Mu[Length-1]);
+		{
+
+			char c=FindVariant(ReadRegion_Mu[Length-1]);
+			cout <<"Variant: Substitution"<<c<<endl;
+			ReadRegion_Mu[Length-1]=c;
+		}
 		else if (variantT==VariantTypeInsertion)
 		{
-			cout <<"Insert selected"<<endl;
 			char var_c=FindVariant(ReadRegion_Mu[Length-1]);
 			string var_str="";
 			var_str.insert(0,1,var_c);
-			cout<<"Inserting "<<var_str<<endl;
+			cout<<"Variant: Insert "<<var_str<<endl;
 			ReadRegion_Mu.insert(Length-1,var_str);
 		}
 		else if (variantT==VariantTypeDeletation)
 		{
+			cout <<"Deletion selected"<<endl;
 			ReadRegion_Mu.erase(Length-1,1);
 		}
 
 		cout <<"With mutations:"<<NumberOfMutatedReads;
 	}
+	else
+		cout <<"Variation: None"<<endl;
 
 
 	int FramesNumber=Length;
@@ -245,8 +252,8 @@ void GenerateOverlappedReads_ConstantSize(string chr, int TotalReads,int Length,
 		return;
 	}
 	cout<<"Frame numbers:"<<FramesNumber<<endl;
-	string ChrAddr=GetFileDirectory(FAddress)+"Reads_"+"x"+"."+ GetFileName(FAddress)+".fa";
-	ofstream outputFile(ChrAddr);
+	//string ChrAddr=outp//GetFileDirectory(FAddress)+"Reads_"+"x"+"."+ GetFileName(FAddress)+".fa";
+	ofstream outputFile(output);
 	outputFile<<ReadRegion<<endl;
 	outputFile<<ReadRegion_Mu<<endl<<endl;
 	int Steps=FramesNumber/TotalReads;
@@ -282,22 +289,23 @@ void GenerateOverlappedReads_ConstantSize(string chr, int TotalReads,int Length,
 }
 
 //Read Length = 0 means Random length
-void GenerateReads(string chr,int ReadsNumber,int ReadLength, VariantType variantT,int VariantPercentage,string FAddress,bool Overlap)
+void GenerateReads(string chr,int ReadsNumber,int ReadLength, VariantType variantT,int VariantPercentage,string FAddress,bool Overlap,string output)
 {
     const int ReadLength_MaxRandom=220;
 	long* Boundries=GetReferenceBoundry(chr,FAddress);
 	long Pos_start=Boundries[0];
 	long Pos_end=Boundries[1];
-
+	if (Pos_end==0)
+		return;
 	//Check Space for Randoms
 	if (ReadLength==0 && Pos_end-Pos_start<450)
 	{
-		cout << "Not enough space for generating random reads. For random reads minimum length of the reference should be 220";
+		cout << "Not enough space for generating random reads. For random reads minimum length of the reference should be 220"<<endl;
 		return;
 	}
 	if (Pos_end-Pos_start<2*ReadLength+1)
 	{
-		cout << "Not enough space for generating reads. For generating random reads ";
+		cout << "Not enough space for generating reads. For generating random reads "<<endl;
       return;
 	}
 	int MaxReadLength=ReadLength;
@@ -323,7 +331,7 @@ void GenerateReads(string chr,int ReadsNumber,int ReadLength, VariantType varian
 	}
 	else
 	{
-		GenerateOverlappedReads_ConstantSize(chr, ReadsNumber,ReadLength,CenterIndex-ReadLength,CenterIndex+ReadLength+2,CenterIndex,variantT,VariantPercentage,FAddress);
+		GenerateOverlappedReads_ConstantSize(chr, ReadsNumber,ReadLength,CenterIndex-ReadLength,CenterIndex+ReadLength+2,CenterIndex,variantT,VariantPercentage,FAddress,output);
 	}
 
 
