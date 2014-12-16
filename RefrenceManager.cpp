@@ -5,7 +5,7 @@
 #include <libgen.h>
 #include <string.h>
 #include <sstream>
-
+#import "RefrenceManager.h"
 using namespace std;
 string GetFileDirectory(string FAddress)
 {
@@ -201,8 +201,10 @@ char FindVariant(char c)
 		return 'G';
 	else if (c=='G' || c=='g')
 		return 'T';
+	return c;
 }
-void GenerateOverlappedReads_ConstantSize(string chr, int TotalReads,int Length,long startindex,long endindex,long CenterIndex,bool HasVariant,int VariantPercentage,string FAddress)
+
+void GenerateOverlappedReads_ConstantSize(string chr, int TotalReads,int Length,long startindex,long endindex,long CenterIndex,VariantType variantT,int VariantPercentage,string FAddress)
 {
 	cout<<"Generating Region is :"<<startindex<<"-"<<endindex<<"center is:"<<CenterIndex<<endl;
 	string ReadRegion=ReadPosition(chr,startindex,endindex,FAddress);
@@ -211,11 +213,26 @@ void GenerateOverlappedReads_ConstantSize(string chr, int TotalReads,int Length,
 	string ReadRegion_Mu="";
 
 	int NumberOfMutatedReads=0;
-	if (HasVariant)
+	if (variantT!=VariantTypeNone)
 	{
 		NumberOfMutatedReads= (TotalReads*VariantPercentage)/100;
 		ReadRegion_Mu=RemoveCharFromString('\n',ReadRegion);
-		ReadRegion_Mu[Length-1]=FindVariant(ReadRegion_Mu[Length-1]);
+		if (variantT==VariantTypeSubstitution)
+			ReadRegion_Mu[Length-1]=FindVariant(ReadRegion_Mu[Length-1]);
+		else if (variantT==VariantTypeInsertion)
+		{
+			cout <<"Insert selected"<<endl;
+			char var_c=FindVariant(ReadRegion_Mu[Length-1]);
+			string var_str="";
+			var_str.insert(0,1,var_c);
+			cout<<"Inserting "<<var_str<<endl;
+			ReadRegion_Mu.insert(Length-1,var_str);
+		}
+		else if (variantT==VariantTypeDeletation)
+		{
+			ReadRegion_Mu.erase(Length-1,1);
+		}
+
 		cout <<"With mutations:"<<NumberOfMutatedReads;
 	}
 
@@ -245,7 +262,7 @@ void GenerateOverlappedReads_ConstantSize(string chr, int TotalReads,int Length,
 		string ReadData="";
 		if (NumberOfMutatedReads-->0)
 		{
-			cout<<"Applying mutation"<<endl;
+			//cout<<"Applying mutation"<<endl;
 			ReadData=ReadRegion_Mu.substr(read_start,Length);
 		}
 		else
@@ -265,7 +282,7 @@ void GenerateOverlappedReads_ConstantSize(string chr, int TotalReads,int Length,
 }
 
 //Read Length = 0 means Random length
-void GenerateReads(string chr,int ReadsNumber,int ReadLength,bool HasVariant,int VariantPercentage,string FAddress,bool Overlap)
+void GenerateReads(string chr,int ReadsNumber,int ReadLength, VariantType variantT,int VariantPercentage,string FAddress,bool Overlap)
 {
     const int ReadLength_MaxRandom=220;
 	long* Boundries=GetReferenceBoundry(chr,FAddress);
@@ -306,7 +323,7 @@ void GenerateReads(string chr,int ReadsNumber,int ReadLength,bool HasVariant,int
 	}
 	else
 	{
-		GenerateOverlappedReads_ConstantSize(chr, ReadsNumber,ReadLength,CenterIndex-ReadLength,CenterIndex+ReadLength+2,CenterIndex,HasVariant,VariantPercentage,FAddress);
+		GenerateOverlappedReads_ConstantSize(chr, ReadsNumber,ReadLength,CenterIndex-ReadLength,CenterIndex+ReadLength+2,CenterIndex,variantT,VariantPercentage,FAddress);
 	}
 
 
