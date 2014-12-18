@@ -113,17 +113,7 @@ void ReadKeys(int argc, char* argv[])
 }
 
 int main(int argc, char* argv[]) {
-	cout <<endl<< "Random Read Generator initializing" << endl; // prints !!!Hello World!!!
-	//string RefAdr="/Users/Amir/Desktop/GATK/EXP/GATK\ Testing\ Scripts/Reference/hg19/ucsc.hg19.txt";
-	//cout<<"Original ref:"<<RefAdr<<endl;
-	//long* res;
-//	cout <<"XXXxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx";
-	//cout <<"XXXxxxxxxxxxxxxxxxSTARTxxxxxxxxxxxxxxxxxxxxxxxx";
-	//dd=ReadReference(1);
-	//res=GetReferenceBoundry("chrM",RefAdr);
-	//PrintChromosome("chrM",res, RefAdr);
-	//GenerateReads("chrM",10,100,VariantTypeInsertion,50,RefAdr,true);
-	//GenerateReads("chrM",10,100,VariantTypeDeletation,50,RefAdr,true,"output.txt");
+	cout <<endl<< "Random Read Generator initializing" << endl;
 	ReadKeys(argc,argv);
 	return 0;
 }

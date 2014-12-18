@@ -25,13 +25,21 @@ inline bool FileExist(const std::string& name)
     else                 // If the file was found, then file is non-0.
         return true;     // The file was found.
 }
-void GenerateRefrenceIndex(string FAddress)
+bool GenerateRefrenceIndex(string FAddress)
 {
 	string IndexFileAddress=FAddress+".kmdx";
+	if (!FileExist(FAddress))
+	{
+		cout <<"Reference file not found"<<endl;
+		return false;
+	}
 	if (FileExist(IndexFileAddress))
 	{
-		return;
+		cout <<"index file found"<<endl;
+		return true;
 	}
+
+	cout<<"Generating index file for :"<<FAddress<< endl;
 	//Read file
 	ifstream file(FAddress);
 	string content;
@@ -40,6 +48,9 @@ void GenerateRefrenceIndex(string FAddress)
 	ofstream outputFile(FAddress+".kmdx");
 	while(file >> content)
 	{
+
+		//cout<<endl<<"SALAAAAAM."<<flush;
+		//break;
 		if (content.at(0)=='>')
 		{
 			cout << "Generating index for "<<content <<endl<<flush;
@@ -47,13 +58,20 @@ void GenerateRefrenceIndex(string FAddress)
 			outputFile<< content <<"\t"<< pos <<endl<<flush;
 		}
 	}
+	cout<<"CONTENT:"<<content;
 	file.close();
 	outputFile.close();
+	return true;
 }
 long* GetReferenceBoundry(string chr,string FAddress)
 {
 	chr=">"+chr;
-	GenerateRefrenceIndex(FAddress);
+	bool RefrenceOK=GenerateRefrenceIndex(FAddress);
+	if (!RefrenceOK)
+	{
+		long default_arr [2] = { 0,0};
+		return default_arr;
+	}
 	string IndexFileAddress=FAddress+".kmdx";
 	ifstream file(IndexFileAddress);
 	string chr_l;
