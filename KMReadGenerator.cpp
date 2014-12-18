@@ -17,6 +17,7 @@ void ReadKeys(int argc, char* argv[])
 	string Output="";
 	string Chr="chrM";
 	int ReadsNum=10;
+	bool IsDebugMode=false;
 	int ReadsLength=100;
 	VariantType Variation=VariantTypeNone;
 	int VariationPercentage=50;
@@ -27,7 +28,7 @@ void ReadKeys(int argc, char* argv[])
 	    } else { // if we got enough parameters...
 	        char* myFile, myPath, myOutPath;
 	        std::cout << argv[0];
-	        for (int i = 1; i < argc; i++) { /* We will iterate over argv[] to get the parameters stored inside.
+	        for (int i = 1; i < argc; i+=2) { /* We will iterate over argv[] to get the parameters stored inside.
 	                                          * Note that we're starting on 1 because we don't need to know the
 	                                          * path of the program, which is stored in argv[0] */
 	            if (i + 1 != argc) // Check that we haven't finished parsing already
@@ -47,15 +48,22 @@ void ReadKeys(int argc, char* argv[])
 	               	     Output = argv[i + 1];
 
 	               	}
-	                else if (argv[i]=="v")
+	                else if (strcmp(argv[i] , "-debug")==0)
 	                {
-	                	if (argv[i+1]=="s")
+
+	               	     IsDebugMode = stoi(argv[i + 1]);
+
+	               	}
+	                else if (strcmp(argv[i],"-v")==0)
+	                {
+	                	//cout <<"Variation key";
+	                	if (strcmp(argv[i+1],"s")==0)
 	                		Variation=VariantTypeSubstitution;
-	                	else if (argv[i+1]=="i")
+	                	else if (strcmp(argv[i+1],"i")==0)
 	                		Variation=VariantTypeInsertion;
-	                	else if (argv[i+1]=="d")
+	                	else if (strcmp(argv[i+1],"d")==0)
 	                		Variation=VariantTypeDeletation;
-	                	else if (argv[i+1]=="n")
+	                	else if (strcmp(argv[i+1],"n")==0)
 	                		Variation=VariantTypeNone;
 	                }
 	                else if (strcmp(argv[i] , "-vp")==0)
@@ -101,7 +109,7 @@ void ReadKeys(int argc, char* argv[])
 		 return;
 	 }
 	 //cout <<"Preparing with Ref:"<<RefAdr<<endl<<"Output"<<Output<<endl;
-	 GenerateReads(Chr,ReadsNum,ReadsLength,Variation,VariationPercentage,RefAdr,overlap,Output);
+	 GenerateReads(Chr,ReadsNum,ReadsLength,Variation,VariationPercentage,RefAdr,overlap,Output,IsDebugMode);
 }
 
 int main(int argc, char* argv[]) {

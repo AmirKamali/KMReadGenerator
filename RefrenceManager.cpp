@@ -204,7 +204,7 @@ char FindVariant(char c)
 	return c;
 }
 
-void GenerateOverlappedReads_ConstantSize(string chr, int TotalReads,int Length,long startindex,long endindex,long CenterIndex,VariantType variantT,int VariantPercentage,string FAddress,string output)
+void GenerateOverlappedReads_ConstantSize(string chr, int TotalReads,int Length,long startindex,long endindex,long CenterIndex,VariantType variantT,int VariantPercentage,string FAddress,string output,bool isDebug)
 {
 	cout<<"Generating Region is :"<<startindex<<"-"<<endindex<<"center is:"<<CenterIndex<<endl;
 	string ReadRegion=ReadPosition(chr,startindex,endindex,FAddress);
@@ -221,7 +221,7 @@ void GenerateOverlappedReads_ConstantSize(string chr, int TotalReads,int Length,
 		{
 
 			char c=FindVariant(ReadRegion_Mu[Length-1]);
-			cout <<"Variant: Substitution"<<c<<endl;
+			cout <<"Variant: Substitution at"<<Length-1<< " Original:"<<ReadRegion_Mu[Length-1]<<" New value:" <<c<<endl;
 			ReadRegion_Mu[Length-1]=c;
 		}
 		else if (variantT==VariantTypeInsertion)
@@ -238,7 +238,7 @@ void GenerateOverlappedReads_ConstantSize(string chr, int TotalReads,int Length,
 			ReadRegion_Mu.erase(Length-1,1);
 		}
 
-		cout <<"With mutations:"<<NumberOfMutatedReads;
+		cout <<"With mutations:"<<NumberOfMutatedReads<<endl;
 	}
 	else
 		cout <<"Variation: None"<<endl;
@@ -248,14 +248,17 @@ void GenerateOverlappedReads_ConstantSize(string chr, int TotalReads,int Length,
 
 	if (TotalReads>FramesNumber)
 	{
-		cout << "Reference is too short for the number of reads";
+		cout << "Reference is too short for the number of reads"<<endl;
 		return;
 	}
 	cout<<"Frame numbers:"<<FramesNumber<<endl;
 	//string ChrAddr=outp//GetFileDirectory(FAddress)+"Reads_"+"x"+"."+ GetFileName(FAddress)+".fa";
 	ofstream outputFile(output);
-	outputFile<<ReadRegion<<endl;
-	outputFile<<ReadRegion_Mu<<endl<<endl;
+	if (isDebug)
+	{
+		outputFile<<ReadRegion<<endl;
+		outputFile<<ReadRegion_Mu<<endl<<endl;
+	}
 	int Steps=FramesNumber/TotalReads;
 	int Iteration=1;
 	int read_start=0;
@@ -265,7 +268,7 @@ void GenerateOverlappedReads_ConstantSize(string chr, int TotalReads,int Length,
 	{
 
 		read_end+=Length;
-		outputFile<<">"<<"Read"<<Iteration++<<"_"<<read_start<<"-"<<read_end<< endl;
+		outputFile<<">"<<"Read"<<Iteration++<<"."<<read_start<<"."<<read_end<< endl;
 		string ReadData="";
 		if (NumberOfMutatedReads-->0)
 		{
@@ -289,7 +292,7 @@ void GenerateOverlappedReads_ConstantSize(string chr, int TotalReads,int Length,
 }
 
 //Read Length = 0 means Random length
-void GenerateReads(string chr,int ReadsNumber,int ReadLength, VariantType variantT,int VariantPercentage,string FAddress,bool Overlap,string output)
+void GenerateReads(string chr,int ReadsNumber,int ReadLength, VariantType variantT,int VariantPercentage,string FAddress,bool Overlap,string output,bool IsDebugMode)
 {
     const int ReadLength_MaxRandom=220;
 	long* Boundries=GetReferenceBoundry(chr,FAddress);
@@ -331,7 +334,7 @@ void GenerateReads(string chr,int ReadsNumber,int ReadLength, VariantType varian
 	}
 	else
 	{
-		GenerateOverlappedReads_ConstantSize(chr, ReadsNumber,ReadLength,CenterIndex-ReadLength,CenterIndex+ReadLength+2,CenterIndex,variantT,VariantPercentage,FAddress,output);
+		GenerateOverlappedReads_ConstantSize(chr, ReadsNumber,ReadLength,CenterIndex-ReadLength,CenterIndex+ReadLength+2,CenterIndex,variantT,VariantPercentage,FAddress,output,IsDebugMode);
 	}
 
 

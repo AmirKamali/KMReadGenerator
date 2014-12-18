@@ -19,7 +19,7 @@ HOW TO USE ?
 
 -vp:Variant percentage [default =50] (optional)
 	
--n: number of generated reads  (optional)
+-n: number of generated reads[default =10]  (optional)
 	number should be 1+
 	
 	
