@@ -47,9 +47,10 @@ bool GenerateRefrenceIndex(string FAddress)
 	//Output index
 	ofstream outputFile(FAddress+".kmdx");
 bool InChromosom=false;
+long CC=0;
 	while(file >> content)
 	{
-
+		CC+=content.length()+1;
 		//cout<<endl<<"SALAAAAAM."<<flush;
 		//break;
 		if (content.at(0)=='>')
@@ -70,11 +71,7 @@ bool InChromosom=false;
 	}
 	if (InChromosom)
 	{
-
-		//file.seekg (0, ios::end);
-		long length = file.tellg();
-		cout<<"Lengthhhh :"<<length<<endl;
-		outputFile<<"\t"<<length<<flush;;
+		outputFile<<"\t"<<CC-1<<flush;;
 	}
 	cout<<"CONTENT:"<<content;
 	file.close();
