@@ -46,6 +46,7 @@ bool GenerateRefrenceIndex(string FAddress)
 
 	//Output index
 	ofstream outputFile(FAddress+".kmdx");
+bool InChromosom=false;
 	while(file >> content)
 	{
 
@@ -55,8 +56,25 @@ bool GenerateRefrenceIndex(string FAddress)
 		{
 			cout << "Generating index for "<<content <<endl<<flush;
 			long pos=((long)file.tellg()-(long)content.length());
-			outputFile<< content <<"\t"<< pos <<endl<<flush;
+			if (!InChromosom)
+			{
+				outputFile<< content <<"\t"<< pos ;
+				InChromosom=true;
+			}
+			else
+			{
+				outputFile<<"\t"<< pos-1 <<endl<<flush;;
+				InChromosom=false;
+			}
 		}
+	}
+	if (InChromosom)
+	{
+
+		//file.seekg (0, ios::end);
+		long length = file.tellg();
+		cout<<"Lengthhhh :"<<length<<endl;
+		outputFile<<"\t"<<length<<flush;;
 	}
 	cout<<"CONTENT:"<<content;
 	file.close();
@@ -77,13 +95,10 @@ long* GetReferenceBoundry(string chr,string FAddress)
 	string chr_l;
 	long pos_start=0;
 	long pos_end=0;
-	while(file >> chr_l>>pos_start)
+	while(file >> chr_l>>pos_start>>pos_end)
 	{
 		if (chr_l.compare(chr)==0)
 		{
-			//cout <<"hahaa:"<<chr_l<<" With pos:"<< pos_start<<endl;
-			file>>chr_l>>pos_end;
-			pos_end-=chr_l.length();
 			break;
 		}
 	}
