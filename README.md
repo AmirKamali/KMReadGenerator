@@ -4,7 +4,7 @@ This command line tool helps generating reads that may have overlap or not.
 
 HOW TO USE ?
 
-./KMReadGenerator -r "chrM.ucsc.hg19.fa" -o "output.fa"
+./KMReadGenerator -r "chrM.txt" -o "output.fa"
 
 -r: reference address. (required)
 	reference file should be in a FASTA format.
