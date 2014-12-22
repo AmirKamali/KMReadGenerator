@@ -15,7 +15,7 @@ void ReadKeys(int argc, char* argv[])
 {
 	string RefAdr="";
 	string Output="";
-	string Chr="chrM";
+	string Chr="chr1";
 	int ReadsNum=10;
 	bool IsDebugMode=false;
 	int ReadsLength=100;
