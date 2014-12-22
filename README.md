@@ -22,6 +22,8 @@ HOW TO USE ?
 -n: number of generated reads[default =10]  (optional)
 	number should be 1+
 	
+-chr Specific chromosome to generate random reads from
+	
 	
 Sample output :
 

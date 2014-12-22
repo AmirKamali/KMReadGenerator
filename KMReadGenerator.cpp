@@ -15,7 +15,7 @@ void ReadKeys(int argc, char* argv[])
 {
 	string RefAdr="";
 	string Output="";
-	string Chr="chr1";
+	string Chr="chrM";
 	int ReadsNum=10;
 	bool IsDebugMode=false;
 	int ReadsLength=100;
@@ -26,7 +26,6 @@ void ReadKeys(int argc, char* argv[])
 	 if (argc < 3) { // Check the value of argc. If not enough parameters have been passed, inform user and exit.
 	        std::cout << "Usage is -r <refrence>  -o <output>"<<endl<<endl; // Inform the user of how to use the program
 	    } else { // if we got enough parameters...
-	        char* myFile, myPath, myOutPath;
 	        std::cout << argv[0];
 	        for (int i = 1; i < argc; i+=2) { /* We will iterate over argv[] to get the parameters stored inside.
 	                                          * Note that we're starting on 1 because we don't need to know the
@@ -44,8 +43,12 @@ void ReadKeys(int argc, char* argv[])
 	                }
 	                else if (strcmp(argv[i] , "-o")==0)
 	                {
-	                	cout <<"xxxxxxok output is :"<<endl;
 	               	     Output = argv[i + 1];
+
+	               	}
+	                else if (strcmp(argv[i] , "-chr")==0)
+	                {
+	               	     Chr = argv[i + 1];
 
 	               	}
 	                else if (strcmp(argv[i] , "-debug")==0)
@@ -56,7 +59,7 @@ void ReadKeys(int argc, char* argv[])
 	               	}
 	                else if (strcmp(argv[i],"-v")==0)
 	                {
-	                	//cout <<"Variation key";
+	                	//Variations : s=substitute i=insertion d=deletion n=none
 	                	if (strcmp(argv[i+1],"s")==0)
 	                		Variation=VariantTypeSubstitution;
 	                	else if (strcmp(argv[i+1],"i")==0)
@@ -74,14 +77,9 @@ void ReadKeys(int argc, char* argv[])
 	                else {
 	                    std::cout << "Not enough or invalid arguments, please try again."<<endl;
 	                    std::cout <<"PARAMETERS:"<< argv[i] << " "<<endl;
-	                   // Sleep(2000);
-	                    //exit(0);
 	            }
 
 	        }
-	        //... some more code
-	        //std::cin.get();
-	       // return 0;
 	    }
 	 if (Output.length()==0)
 	 {
@@ -108,7 +106,6 @@ void ReadKeys(int argc, char* argv[])
 		 cout <<"Variant percentage should fall in [0-100] range";
 		 return;
 	 }
-	 //cout <<"Preparing with Ref:"<<RefAdr<<endl<<"Output"<<Output<<endl;
 	 GenerateReads(Chr,ReadsNum,ReadsLength,Variation,VariationPercentage,RefAdr,overlap,Output,IsDebugMode);
 }
 
