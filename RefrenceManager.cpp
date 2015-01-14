@@ -19,11 +19,11 @@ string GetFileName(string filepath)
 }
 inline bool FileExist(const std::string& name)
 {
-    ifstream file(name);
-    if(!file)            // If the file was not found, then file is 0, i.e. !file=1 or true.
-        return false;    // The file was not found.
-    else                 // If the file was found, then file is non-0.
-        return true;     // The file was found.
+	ifstream file(name);
+	if(!file)            // If the file was not found, then file is 0, i.e. !file=1 or true.
+		return false;    // The file was not found.
+	else                 // If the file was found, then file is non-0.
+		return true;     // The file was found.
 }
 bool GenerateRefrenceIndex(string FAddress)
 {
@@ -39,41 +39,44 @@ bool GenerateRefrenceIndex(string FAddress)
 		return true;
 	}
 
-	cout<<"Generating index file for :"<<FAddress<< endl;
+	cout<<"XGenerating index file for :"<<FAddress<< endl;
 	//Read file
 	ifstream file(FAddress);
-	string content;
+	string line;
 
 	//Output index
 	ofstream outputFile(FAddress+".kmdx");
-bool InChromosom=false;
-long CC=0;
-	while(file >> content)
+	bool InChromosom=false;
+	long CC=0;
+	while(file >> line)
 	{
-		CC+=content.length()+1;
+
 		//cout<<endl<<"SALAAAAAM."<<flush;
 		//break;
-		if (content.at(0)=='>')
+		if (line.at(0)=='>')
 		{
-			cout << "Generating index for "<<content <<endl<<flush;
-			long pos=((long)file.tellg()-(long)content.length());
+			cout << "Generating index for "<<line <<endl<<flush;
+			long pos=((long)file.tellg()-(long)line.length());
 			if (!InChromosom)
 			{
-				outputFile<< content <<"\t"<< pos ;
+				outputFile<< line <<"\t"<< pos ;
 				InChromosom=true;
 			}
 			else
 			{
-				outputFile<<"\t"<< pos-1 <<endl<<flush;;
+				outputFile<<"\t"<< pos-1<<endl<<flush;;
 				InChromosom=false;
 			}
 		}
+
+
+		CC+=line.length()+1;
 	}
 	if (InChromosom)
 	{
 		outputFile<<"\t"<<CC-1<<flush;;
 	}
-	cout<<"CONTENT:"<<content;
+	cout<<"CONTENT:"<<line;
 	file.close();
 	outputFile.close();
 	return true;
@@ -92,6 +95,7 @@ long* GetReferenceBoundry(string chr,string FAddress)
 	string chr_l;
 	long pos_start=0;
 	long pos_end=0;
+
 	while(file >> chr_l>>pos_start>>pos_end)
 	{
 		if (chr_l.compare(chr)==0)
@@ -133,6 +137,15 @@ void PrintChromosome(string chr, long Boundry[], string FAddress)
 	file.close();
 	outputFile.close();
 }
+unsigned long LongRandom (long low,long high)
+{
+	long Diff=high-low;
+	long RNDDDD=rand();
+	srand(time(0));
+	//cout<<"GENERATINH RANDOM:"<<RNDDDD<<endl;
+	long RandNum=low+ (long) (RNDDDD% Diff);
+	return RandNum;
+}
 unsigned long LongRandom ()
 {
 
@@ -161,50 +174,50 @@ string RemoveCharFromString(char c,string str)
 string RemoveCharFromCharArray(char c,char arr[])
 {
 
-	    char Res[strlen(arr)];
-	    int Xindex=0;
-	    for(int i = 0; arr[i] != '\0'; i++)
-	    {
+	char Res[strlen(arr)];
+	int Xindex=0;
+	for(int i = 0; arr[i] != '\0'; i++)
+	{
 
-	    	if(arr[i] != c)
-	    	{
-	    		Res[Xindex++]=arr[i];
-	    	}
-	    }
-	    Res[Xindex]='\0';
-	    Res[Xindex+1]='\n';
-	    cout<<"After remove:"<<Res<<endl;
-	    return Res;
+		if(arr[i] != c)
+		{
+			Res[Xindex++]=arr[i];
+		}
+	}
+	Res[Xindex]='\0';
+	Res[Xindex+1]='\n';
+	cout<<"After remove:"<<Res<<endl;
+	return Res;
 }
 string ReadPosition(string Chr,int StartIndex,int EndIndex,string FAddr)
 {
-		cout<<"Generating chromosome in range:"<<StartIndex<<"-"<<EndIndex<<endl;
-		StartIndex+=Chr.length()+2;
-		EndIndex+=Chr.length()+2;
+	cout<<"Generating chromosome in range:"<<StartIndex<<"-"<<EndIndex<<endl;
+	StartIndex+=Chr.length()+2;
+	EndIndex+=Chr.length()+2;
 
-		ifstream file(FAddr);
-		file.seekg(StartIndex,file.beg);
-		file.clear();
-		string content;
-		string Res="";
-	    char * buffer = new char [EndIndex-StartIndex];
-	    for (int i=0;i<EndIndex-StartIndex+1 ;i++)
-	    {
-	    	buffer[i]='\0';
-	    }
-	    file.read (buffer,EndIndex-StartIndex);
+	ifstream file(FAddr);
+	file.seekg(StartIndex,file.beg);
+	file.clear();
+	string content;
+	string Res="";
+	char * buffer = new char [EndIndex-StartIndex];
+	for (int i=0;i<EndIndex-StartIndex+1 ;i++)
+	{
+		buffer[i]='\0';
+	}
+	file.read (buffer,EndIndex-StartIndex);
 
-	    return buffer;
+	return buffer;
 }
 
 std::string ReplaceString(std::string subject, const std::string& search,
-                          const std::string& replace) {
-    size_t pos = 0;
-    while((pos = subject.find(search, pos)) != std::string::npos) {
-         subject.replace(pos, search.length(), replace);
-         pos += replace.length();
-    }
-    return subject;
+		const std::string& replace) {
+	size_t pos = 0;
+	while((pos = subject.find(search, pos)) != std::string::npos) {
+		subject.replace(pos, search.length(), replace);
+		pos += replace.length();
+	}
+	return subject;
 }
 void GenerateOverlappedReads_RandomSize(int TotalReads,long CenterIndex,string chr,string FAddress)
 {
@@ -222,7 +235,7 @@ int CountWhiteSpace(string str)
 }
 char FindVariant(char c)
 {
-	//return 'X';
+	return 'X';
 	if (c=='A' || c=='a')
 		return 'C';
 	else if (c=='T' || c=='t')
@@ -307,7 +320,7 @@ void GenerateOverlappedReads_ConstantSize(string chr, int TotalReads,int Length,
 		}
 		else
 		{
-		  ReadData=ReadRegion.substr(read_start,Length);
+			ReadData=ReadRegion.substr(read_start,Length);
 
 		}
 
@@ -324,46 +337,65 @@ void GenerateOverlappedReads_ConstantSize(string chr, int TotalReads,int Length,
 //Read Length = 0 means Random length
 void GenerateReads(string chr,int ReadsNumber,int ReadLength, VariantType variantT,int VariantPercentage,string FAddress,bool Overlap,string output,bool IsDebugMode)
 {
-    const int ReadLength_MaxRandom=220;
+	///REMOVE INDEX FILE FOR TEST
+	//string IndexAddress=FAddress+".kmdx";
+	//if( remove( IndexAddress.c_str() ) != 0 )
+	//    perror( "Error deleting file" );
+	// else
+	//    puts( "File successfully deleted" );
+
+	///
+	const int ReadLength_MaxRandom=220;
 	long* Boundries=GetReferenceBoundry(chr,FAddress);
 	long Pos_start=Boundries[0];
 	long Pos_end=Boundries[1];
+
 	if (Pos_end==0)
 		return;
 	//Check Space for Randoms
-	if (ReadLength==0 && Pos_end-Pos_start<450)
+	if (ReadLength==0 && Pos_end-Pos_start<ReadLength*2)
 	{
-		cout << "Not enough space for generating random reads. For random reads minimum length of the reference should be 220"<<endl;
+		cout << "Not enough space for generating random reads. For random reads minimum length of the reference should be 2*Read maximum length"<<endl;
 		return;
 	}
 	if (Pos_end-Pos_start<2*ReadLength+1)
 	{
 		cout << "Not enough space for generating reads. For generating random reads "<<endl;
-      return;
+		return;
 	}
+
+
+
 	int MaxReadLength=ReadLength;
 	if (MaxReadLength==0)
 		MaxReadLength=ReadLength_MaxRandom;
 
-	//Finding Center (overlap index)
-	long Center_Boundry_Start=MaxReadLength+MaxReadLength/50;
-	long Center_Boundry_End=Pos_end-(MaxReadLength+MaxReadLength/50);
 
-	//long CenterIndex = Center_Boundry_Start+ LongRandom()% (Center_Boundry_End-Center_Boundry_Start);
-	long CenterIndex=100;
-	cout <<"Center Start:"<<MaxReadLength<<"-"<<Center_Boundry_End <<" centerindex:"<<CenterIndex<<endl;
 
-	if (Center_Boundry_Start>=Center_Boundry_End)
-	{
-		cout <<"Error in finding boundries"<<endl;
-		return;
-	}
-	if (ReadLength==0)
+	if (ReadLength==0)//Not same size reads
 	{
 		//GenerateOverlappedReads_RandomSize(ReadsNumber,CenterIndex,chr,FAddress);
 	}
-	else
+	else//Reads with same size
 	{
+		long CenterIndex=0;
+		while (true)
+		{
+			CenterIndex= LongRandom(Pos_start+ReadLength/2,Pos_end-ReadLength/2 );
+			cout<<endl<<endl <<"Randomm Center Number:"<<CenterIndex<<endl;
+			int PotentialStartPos=CenterIndex-ReadLength/2;
+			string ReadRegion=ReadPosition(chr,PotentialStartPos,PotentialStartPos+ReadLength,FAddress);
+			if (ReadRegion[0]=='N' || ReadRegion[ReadRegion.length()-1]=='N')
+			{
+				cout <<"Un acceptable region :"<<ReadRegion<<" PosStart:"<<PotentialStartPos<<endl;
+			}
+			else
+			{
+				cout <<"region found :"<<ReadRegion<<endl;
+				break;
+			}
+		}
+
 		GenerateOverlappedReads_ConstantSize(chr, ReadsNumber,ReadLength,CenterIndex-ReadLength,CenterIndex+ReadLength+2,CenterIndex,variantT,VariantPercentage,FAddress,output,IsDebugMode);
 	}
 
