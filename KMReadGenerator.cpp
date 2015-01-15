@@ -18,6 +18,7 @@ void ReadKeys(int argc, char* argv[])
 	string Chr="chrM";
 	int ReadsNum=10;
 	bool IsDebugMode=false;
+	int Overlapping_Len=1;
 	int ReadsLength=100;
 	VariantType Variation=VariantTypeNone;
 	int VariationPercentage=50;
@@ -74,6 +75,11 @@ void ReadKeys(int argc, char* argv[])
 	                	VariationPercentage =stoi( argv[i + 1]);
 
 	             	 }
+	                else if (strcmp(argv[i] , "-ol")==0)
+	             	 {
+	                	Overlapping_Len =stoi( argv[i + 1]);
+
+	             	 }
 	                else {
 	                    std::cout << "Not enough or invalid arguments, please try again."<<endl;
 	                    std::cout <<"PARAMETERS:"<< argv[i] << " "<<endl;
@@ -106,7 +112,7 @@ void ReadKeys(int argc, char* argv[])
 		 cout <<"Variant percentage should fall in [0-100] range";
 		 return;
 	 }
-	 GenerateReads(Chr,ReadsNum,ReadsLength,Variation,VariationPercentage,RefAdr,overlap,Output,IsDebugMode);
+	 GenerateReads(Chr,ReadsNum,ReadsLength,Variation,VariationPercentage,RefAdr,overlap,Overlapping_Len,Output,IsDebugMode);
 }
 
 int main(int argc, char* argv[]) {

@@ -235,7 +235,7 @@ int CountWhiteSpace(string str)
 }
 char FindVariant(char c)
 {
-	return 'X';
+	return c;//'X';
 	if (c=='A' || c=='a')
 		return 'C';
 	else if (c=='T' || c=='t')
@@ -247,7 +247,7 @@ char FindVariant(char c)
 	return c;
 }
 
-void GenerateOverlappedReads_ConstantSize(string chr, int TotalReads,int Length,long startindex,long endindex,long CenterIndex,VariantType variantT,int VariantPercentage,string FAddress,string output,bool isDebug)
+void GenerateOverlappedReads_ConstantSize(string chr, int TotalReads,int Length,long startindex,long endindex,long CenterIndex,VariantType variantT,int VariantPercentage,int overlapsize,string FAddress,string output,bool isDebug)
 {
 	cout<<"Generating Region is :"<<startindex<<"-"<<endindex<<"center is:"<<CenterIndex<<endl;
 	string ReadRegion=ReadPosition(chr,startindex,endindex,FAddress);
@@ -287,15 +287,15 @@ void GenerateOverlappedReads_ConstantSize(string chr, int TotalReads,int Length,
 		cout <<"Variation: None"<<endl;
 
 
-	int FramesNumber=Length;
-
-	if (TotalReads>FramesNumber)
+	int FramesNumber=Length-overlapsize;
+	cout<<"Frame number:"<<FramesNumber<<" Total Reads:"<<TotalReads<<endl;
+	if (TotalReads>FramesNumber+1)
 	{
 		cout << "Reference is too short for the number of reads"<<endl;
 		return;
 	}
 	cout<<"Frame numbers:"<<FramesNumber<<endl;
-	//string ChrAddr=outp//GetFileDirectory(FAddress)+"Reads_"+"x"+"."+ GetFileName(FAddress)+".fa";
+
 	ofstream outputFile(output);
 	if (isDebug)
 	{
@@ -303,6 +303,8 @@ void GenerateOverlappedReads_ConstantSize(string chr, int TotalReads,int Length,
 		outputFile<<ReadRegion_Mu<<endl<<endl;
 	}
 	int Steps=FramesNumber/TotalReads;
+	if (Steps==0)
+		Steps++;
 	int Iteration=1;
 	int read_start=0;
 	int read_end=0;
@@ -335,7 +337,7 @@ void GenerateOverlappedReads_ConstantSize(string chr, int TotalReads,int Length,
 }
 
 //Read Length = 0 means Random length
-void GenerateReads(string chr,int ReadsNumber,int ReadLength, VariantType variantT,int VariantPercentage,string FAddress,bool Overlap,string output,bool IsDebugMode)
+void GenerateReads(string chr,int ReadsNumber,int ReadLength, VariantType variantT,int VariantPercentage,string FAddress,bool Overlap,int overlappinglen,string output,bool IsDebugMode)
 {
 	///REMOVE INDEX FILE FOR TEST
 	//string IndexAddress=FAddress+".kmdx";
@@ -345,6 +347,7 @@ void GenerateReads(string chr,int ReadsNumber,int ReadLength, VariantType varian
 	//    puts( "File successfully deleted" );
 
 	///
+	cout <<"Overlapping region:"<<overlappinglen;
 	const int ReadLength_MaxRandom=220;
 	long* Boundries=GetReferenceBoundry(chr,FAddress);
 	long Pos_start=Boundries[0];
@@ -396,7 +399,7 @@ void GenerateReads(string chr,int ReadsNumber,int ReadLength, VariantType varian
 			}
 		}
 
-		GenerateOverlappedReads_ConstantSize(chr, ReadsNumber,ReadLength,CenterIndex-ReadLength,CenterIndex+ReadLength+2,CenterIndex,variantT,VariantPercentage,FAddress,output,IsDebugMode);
+		GenerateOverlappedReads_ConstantSize(chr, ReadsNumber,ReadLength,CenterIndex-ReadLength,CenterIndex+ReadLength+2,CenterIndex,variantT,VariantPercentage,overlappinglen,FAddress,output,IsDebugMode);
 	}
 
 
