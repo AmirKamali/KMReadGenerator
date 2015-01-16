@@ -235,7 +235,7 @@ int CountWhiteSpace(string str)
 }
 char FindVariant(char c)
 {
-	return c;//'X';
+	return 'X';
 	if (c=='A' || c=='a')
 		return 'C';
 	else if (c=='T' || c=='t')
@@ -260,28 +260,36 @@ void GenerateOverlappedReads_ConstantSize(string chr, int TotalReads,int Length,
 	{
 		NumberOfMutatedReads= (TotalReads*VariantPercentage)/100;
 		ReadRegion_Mu=RemoveCharFromString('\n',ReadRegion);
-		if (variantT==VariantTypeSubstitution)
+		int CC=0;
+		for (int i=Length-overlapsize;i<Length-1;i++)
 		{
 
-			char c=FindVariant(ReadRegion_Mu[Length-1]);
-			cout <<"Variant: Substitution at"<<Length-1<< " Original:"<<ReadRegion_Mu[Length-1]<<" New value:" <<c<<endl;
-			ReadRegion_Mu[Length-1]=c;
-		}
-		else if (variantT==VariantTypeInsertion)
-		{
-			char var_c=FindVariant(ReadRegion_Mu[Length-1]);
-			string var_str="";
-			var_str.insert(0,1,var_c);
-			cout<<"Variant: Insert "<<var_str<<endl;
-			ReadRegion_Mu.insert(Length-1,var_str);
-		}
-		else if (variantT==VariantTypeDeletation)
-		{
-			cout <<"Deletion selected"<<endl;
-			ReadRegion_Mu.erase(Length-1,1);
-		}
+			if (CC++>=overlapsize)
+				break;
+			cout <<"CC:"<<CC<<endl;
+			if (variantT==VariantTypeSubstitution)
+			{
 
-		cout <<"With mutations:"<<NumberOfMutatedReads<<endl;
+				char c=FindVariant(ReadRegion_Mu[i]);
+				cout <<"Variant: Substitution at"<<Length-1<< " Original:"<<ReadRegion_Mu[Length-1]<<" New value:" <<c<<endl;
+				ReadRegion_Mu[i]=c;
+			}
+			else if (variantT==VariantTypeInsertion)
+			{
+				char var_c=FindVariant(ReadRegion_Mu[i]);
+				string var_str="";
+				var_str.insert(0,1,var_c);
+				cout<<"Variant: Insert "<<var_str<<endl;
+				ReadRegion_Mu.insert(i,var_str);
+			}
+			else if (variantT==VariantTypeDeletation)
+			{
+				cout <<"Deletion selected"<<endl;
+				ReadRegion_Mu.erase(i);
+			}
+
+			cout <<"With mutations:"<<NumberOfMutatedReads<<endl;
+		}
 	}
 	else
 		cout <<"Variation: None"<<endl;
