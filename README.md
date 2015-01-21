@@ -13,16 +13,18 @@ HOW TO USE ?
 
 -l: Length of generated reads.[default =100] (optional)
 	length should be 10+ 
-
--v: Variant type [default =none] (optional)
-	s=substitution , i=insertion , d=deletion, n=none;
-
--vp:Variant percentage [default =50] (optional)
 	
 -n: number of generated reads[default =10]  (optional)
 	number should be 1+
 	
 -chr Specific chromosome to generate random reads from
+
+-vpt:Variation Pattern [default ="s1"] (optional)
+	s=substitution , i=insertion , d=deletion, n=blank
+	how to use use: variation+length : s5 = 5 substituon
+	sample variation pattern: "s1-b5-d1-b3-i4" 
+
+-vp:Variant percentage [default =50] (optional)
 	
 	
 Sample output :
@@ -47,3 +49,8 @@ CATTGCGAGACGCTGGAGCCGGAGCACCCTATGTCGCAGTATCTGTCTTT
 CGAGACGCTGGAGCCGGAGCACCCTATGTCGCAGTATCTGTCTTTGATTC
 >Read10_45-500
 CGCTGGAGCCGGAGCACCCTATGTCGCAGTATCTGTCTTTGATTCCTGCC
+
+
+Example:
+./KMReadGenerator -r "/hg19/chr21.ucsc.hg19.fa" -o "output.fa" -l 30 -vp 100  -n 10 -vpt s1-b5-d1-b1-s2
+ 

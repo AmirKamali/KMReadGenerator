@@ -27,10 +27,11 @@ void ReadKeys(int argc, char* argv[])
 	string Chr="chrM";
 	int ReadsNum=10;
 	bool IsDebugMode=false;
-	int *OverLapAndSpaceRegion;
+	string SampleVariationPattern[1]={"s1"};
+	string *OverLapAndSpaceRegion=SampleVariationPattern;
+
 	int RegionNumber=0;
 	int ReadsLength=100;
-	VariantType Variation=VariantTypeNone;
 	int VariationPercentage=50;
 	bool overlap=true;
 
@@ -68,31 +69,19 @@ void ReadKeys(int argc, char* argv[])
 	               	     IsDebugMode = stoi(argv[i + 1]);
 
 	               	}
-	                else if (strcmp(argv[i],"-v")==0)
-	                {
-	                	//Variations : s=substitute i=insertion d=deletion n=none
-	                	if (strcmp(argv[i+1],"s")==0)
-	                		Variation=VariantTypeSubstitution;
-	                	else if (strcmp(argv[i+1],"i")==0)
-	                		Variation=VariantTypeInsertion;
-	                	else if (strcmp(argv[i+1],"d")==0)
-	                		Variation=VariantTypeDeletation;
-	                	else if (strcmp(argv[i+1],"n")==0)
-	                		Variation=VariantTypeNone;
-	                }
 	                else if (strcmp(argv[i] , "-vp")==0)
 	             	 {
 	                	VariationPercentage =stoi( argv[i + 1]);
 
 	             	 }
-	                else if (strcmp(argv[i] , "-or")==0)
+	                else if (strcmp(argv[i] , "-vpt")==0)
 	             	 {
 	                	//Overlapping_Len =stoi( argv[i + 1]);
 
 
 	                    string text = argv[i + 1];
 
-	                    char_separator<char> sep(", ");
+	                    char_separator<char> sep("-");
 	                    tokenizer<char_separator<char> > tokens(text, sep);
 	                    int TokenCount=0;
 	                    for (const auto& t : tokens) {
@@ -101,11 +90,11 @@ void ReadKeys(int argc, char* argv[])
 	                    }
 	                    RegionNumber=TokenCount;
 
-	                    OverLapAndSpaceRegion= new int[TokenCount]; //
+	                    OverLapAndSpaceRegion= new string[TokenCount]; //
 	                    TokenCount=0;
 	                    for (const auto& t : tokens)
 	                    {
-	                    	OverLapAndSpaceRegion[TokenCount++]=stoi( t);
+	                    	OverLapAndSpaceRegion[TokenCount++]=t;
 	                    }
 	             	 }
 	                else {
@@ -144,7 +133,6 @@ void ReadKeys(int argc, char* argv[])
 	 //string chr,
 	 //int ReadsNumber
 	 //,int ReadLength,
-	 //VariantType variantT,
 	 //int VariantPercentage,
 	 //string FAddress,
 	 //bool Overlap,
@@ -156,7 +144,6 @@ void ReadKeys(int argc, char* argv[])
 			 Chr,
 			 ReadsNum,
 			 ReadsLength,
-			 Variation,
 			 VariationPercentage,
 			 RefAdr,
 			 overlap,

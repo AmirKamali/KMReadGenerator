@@ -222,15 +222,36 @@ char FindVariant(char c) {
 		return 'T';
 	return c;
 }
-
+VariantType GetVariantType(char c)
+{
+	if (c=='s')
+	{
+		return VariantTypeInsertion;
+	}
+	if (c=='i')
+		{
+			return VariantTypeInsertion;
+		}
+	if (c=='i')
+		{
+			return VariantTypeInsertion;
+		}
+	else
+		return VariantTypeNone;
+}
 void GenerateOverlappedReads_ConstantSize(string chr, int TotalReads,
-		int Length, long startindex, long endindex, long CenterIndex,
-		VariantType variantT, int VariantPercentage, int* OverLapAndSpaceRegion,
+		int Length, long startindex, long endindex, long CenterIndex
+		, int VariantPercentage, string* OverLapAndSpaceRegion,
 		int RegionNumber, string FAddress, string output, bool isDebug) {
 	int overlapsize = 0;
-	//OverlappingRegion : 2,3,5,7,4=2bp+ 3space+5bp+7sp+4bp
+	//OverlappingRegion : b=blank s=substution i=insertion d=deletion
 	for (int i = 0; i < RegionNumber; i++) {
-		overlapsize += OverLapAndSpaceRegion[i];
+		string str= OverLapAndSpaceRegion[i];
+
+				str=str.substr(1,str.length()-1);
+				cout<<"CCCCLEN"<<str<<endl;;
+				overlapsize += stoi(str);
+
 	}
 
 	cout << "Generating Region is :" << startindex << "-" << endindex
@@ -241,38 +262,42 @@ void GenerateOverlappedReads_ConstantSize(string chr, int TotalReads,
 	string ReadRegion_Mu = "";
 
 	int NumberOfMutatedReads = 0;
-	if (variantT != VariantTypeNone) {
+	if ( OverLapAndSpaceRegion) {
 
 		NumberOfMutatedReads = (TotalReads * VariantPercentage) / 100;
 		ReadRegion_Mu = RemoveCharFromString('\n', ReadRegion);
 		int CC = 0;
 
 		int RegionIterator = 0;
-		int CurrentRegionValue = OverLapAndSpaceRegion[0];
+		string CurrentRegionValue = OverLapAndSpaceRegion[0];
+		VariantType CurrentVariation=GetVariantType(CurrentRegionValue[0]);
+		CurrentRegionValue=CurrentRegionValue.substr(1,CurrentRegionValue.length()-1);
 		int CurrentRegionIndex = 0;
 
 		for (int i = Length - overlapsize; i < Length; i++) {
-			if (CurrentRegionIndex >= CurrentRegionValue) {
+			if (CurrentRegionIndex >=stoi( CurrentRegionValue)) {
 				RegionIterator++;
 				CurrentRegionIndex = 0;
 				CurrentRegionValue = OverLapAndSpaceRegion[RegionIterator];
+				CurrentVariation=GetVariantType(CurrentRegionValue[0]);
+				CurrentRegionValue=CurrentRegionValue.substr(1,CurrentRegionValue.length()-1);
 			}
 			if (CC++ >= overlapsize)
 				break;
-			if (RegionIterator % 2 == 0) {
+			if (CurrentVariation!=VariantTypeNone) {
 				cout<<"EXEC: ITER:"<<RegionIterator<< "Index:"<< CurrentRegionIndex<<"Value:"<<CurrentRegionValue <<endl;
-				if (variantT == VariantTypeSubstitution) {
+				if (CurrentVariation == VariantTypeSubstitution) {
 
 					char c = FindVariant(ReadRegion_Mu[i]);
 					//cout <<"Variant: Substitution at"<<Length-1<< " Original:"<<ReadRegion_Mu[Length-1]<<" New value:" <<c<<endl;
 					ReadRegion_Mu[i] = c;
-				} else if (variantT == VariantTypeInsertion) {
+				} else if (CurrentVariation == VariantTypeInsertion) {
 					char var_c = FindVariant(ReadRegion_Mu[i]);
 					string var_str = "";
 					var_str.insert(0, 1, var_c);
 					//cout<<"Variant: Insert "<<var_str<<endl;
 					ReadRegion_Mu.insert(i, var_str);
-				} else if (variantT == VariantTypeDeletation) {
+				} else if (CurrentVariation == VariantTypeDeletation) {
 					//cout <<"Deletion selected"<<endl;
 					ReadRegion_Mu.erase(i);
 				}
@@ -331,8 +356,8 @@ cout<<"MUTATION REGION:"<<ReadRegion_Mu<<endl;
 
 //Read Length = 0 means Random length
 void GenerateReads(string chr, int ReadsNumber, int ReadLength,
-		VariantType variantT, int VariantPercentage, string FAddress,
-		bool Overlap, int* OverLapAndSpaceRegion, int RegionNumber,
+		 int VariantPercentage, string FAddress,
+		bool Overlap, string* OverLapAndSpaceRegion, int RegionNumber,
 		string output, bool IsDebugMode) {
 	///REMOVE INDEX FILE FOR TEST
 	//string IndexAddress=FAddress+".kmdx";
@@ -340,13 +365,17 @@ void GenerateReads(string chr, int ReadsNumber, int ReadLength,
 	//    perror( "Error deleting file" );
 	// else
 	//    puts( "File successfully deleted" );
-
 	///
+	cout<<endl<<"CCCCLENxxxxxxxxkjhkewldjlkejflkewfj"<<endl;;
 	int overlappinglen = 0;
 	//OverlappingRegion : 2,3,5,7,4=2bp+ 3space+5bp+7sp+4bp
 	for (int i = 0; i < RegionNumber; i++) {
 		//cout<<"OK:"<<OverLapAndSpaceRegion[i]<<endl;
-		overlappinglen += OverLapAndSpaceRegion[i];
+		string str= OverLapAndSpaceRegion[i];
+
+		str=str.substr(1,str.length()-1);
+		cout<<"CCCCLEN"<<str<<endl;;
+		overlappinglen += stoi(str);
 	}
 
 	cout << "Overlapping region:" << overlappinglen;
@@ -401,7 +430,7 @@ void GenerateReads(string chr, int ReadsNumber, int ReadLength,
 
 		GenerateOverlappedReads_ConstantSize(chr, ReadsNumber, ReadLength,
 				CenterIndex - ReadLength, CenterIndex + ReadLength + 2,
-				CenterIndex, variantT, VariantPercentage, OverLapAndSpaceRegion,
+				CenterIndex, VariantPercentage, OverLapAndSpaceRegion,
 				RegionNumber, FAddress, output, IsDebugMode);
 	}
 
