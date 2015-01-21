@@ -8,7 +8,16 @@
 
 #include <iostream>
 #include "RefrenceManager.h"
+#include <string>
+#include <vector>
+#include <sstream>
+#include <iterator>
+#include <boost/tokenizer.hpp>
+
+
 using namespace std;
+using namespace boost;
+
 
 //int* ReadReference(int a);
 void ReadKeys(int argc, char* argv[])
@@ -18,7 +27,8 @@ void ReadKeys(int argc, char* argv[])
 	string Chr="chrM";
 	int ReadsNum=10;
 	bool IsDebugMode=false;
-	int Overlapping_Len=1;
+	int *OverLapAndSpaceRegion;
+	int RegionNumber=0;
 	int ReadsLength=100;
 	VariantType Variation=VariantTypeNone;
 	int VariationPercentage=50;
@@ -75,10 +85,28 @@ void ReadKeys(int argc, char* argv[])
 	                	VariationPercentage =stoi( argv[i + 1]);
 
 	             	 }
-	                else if (strcmp(argv[i] , "-ol")==0)
+	                else if (strcmp(argv[i] , "-or")==0)
 	             	 {
-	                	Overlapping_Len =stoi( argv[i + 1]);
+	                	//Overlapping_Len =stoi( argv[i + 1]);
 
+
+	                    string text = argv[i + 1];
+
+	                    char_separator<char> sep(", ");
+	                    tokenizer<char_separator<char> > tokens(text, sep);
+	                    int TokenCount=0;
+	                    for (const auto& t : tokens) {
+	                    	TokenCount++;
+	                        cout << t << "." << endl;
+	                    }
+	                    RegionNumber=TokenCount;
+
+	                    OverLapAndSpaceRegion= new int[TokenCount]; //
+	                    TokenCount=0;
+	                    for (const auto& t : tokens)
+	                    {
+	                    	OverLapAndSpaceRegion[TokenCount++]=stoi( t);
+	                    }
 	             	 }
 	                else {
 	                    std::cout << "Not enough or invalid arguments, please try again."<<endl;
@@ -112,7 +140,30 @@ void ReadKeys(int argc, char* argv[])
 		 cout <<"Variant percentage should fall in [0-100] range";
 		 return;
 	 }
-	 GenerateReads(Chr,ReadsNum,ReadsLength,Variation,VariationPercentage,RefAdr,overlap,Overlapping_Len,Output,IsDebugMode);
+	 //GenerateReads("1",2,2,VariantTypeSubstitution,10,"ss",true,0,0,"ss",true);
+	 //string chr,
+	 //int ReadsNumber
+	 //,int ReadLength,
+	 //VariantType variantT,
+	 //int VariantPercentage,
+	 //string FAddress,
+	 //bool Overlap,
+	 //int* OverLapAndSpaceRegion,
+	 //int RegionNumber,
+	 //string output,
+	 //bool IsDebugMode);
+	 GenerateReads(
+			 Chr,
+			 ReadsNum,
+			 ReadsLength,
+			 Variation,
+			 VariationPercentage,
+			 RefAdr,
+			 overlap,
+			 OverLapAndSpaceRegion,
+			 RegionNumber,
+			 Output,
+			 IsDebugMode);
 }
 
 int main(int argc, char* argv[]) {
