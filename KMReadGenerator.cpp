@@ -76,7 +76,7 @@ void ReadKeys(int argc, char* argv[])
 	             	 }
 	                else if (strcmp(argv[i] , "-vpt")==0)
 	             	 {
-	                	//Overlapping_Len =stoi( argv[i + 1]);
+	                	//Overlapping_Lenk =stoi( argv[i + 1]);
 
 
 	                    string text = argv[i + 1];
@@ -86,7 +86,7 @@ void ReadKeys(int argc, char* argv[])
 	                    int TokenCount=0;
 	                    for (const auto& t : tokens) {
 	                    	TokenCount++;
-	                        cout << t << "." << endl;
+	                        //cout << t << "." << endl;
 	                    }
 	                    RegionNumber=TokenCount;
 
