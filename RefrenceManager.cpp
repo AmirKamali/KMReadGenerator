@@ -3,8 +3,12 @@
 #include <string>
 #include <libgen.h>
 #include <string.h>
+#include <stdlib.h>
+#include <time.h>
 #include <sstream>
 #import "RefrenceManager.h"
+#include "boost/random.hpp"
+#include "boost/generator_iterator.hpp"
 using namespace std;
 #if !defined(ARRAY_SIZE)
 #define ARRAY_SIZE(x) (sizeof((x)) / sizeof((x)[0]))
@@ -124,31 +128,41 @@ void PrintChromosome(string chr, long Boundry[], string FAddress) {
 	outputFile.close();
 }
 unsigned long LongRandom(long low, long high) {
-	long Diff = high - low;
-	long RNDDDD = rand();
-	srand(time(0));
-	//cout<<"GENERATINH RANDOM:"<<RNDDDD<<endl;
-	long RandNum = low + (long) (RNDDDD % Diff);
-	return RandNum;
+
+
+	 typedef boost::uniform_real<> NumberDistribution;
+	  typedef boost::mt19937 RandomNumberGenerator;
+	  typedef boost::variate_generator<RandomNumberGenerator&,
+	                                   NumberDistribution> Generator;
+	  NumberDistribution distribution(low, high);
+	    RandomNumberGenerator generator;
+	    Generator numberGenerator(generator, distribution);
+	    generator.seed(std::time(0)); // seed with the current time
+
+	    long val= numberGenerator() ;
+	    return val;
+	////2///////////
+//    typedef boost::mt19937 RNGType;
+//
+//    RNGType rng( time(0)*time(0)%50 *time(0) );
+//     boost::uniform_int<> one_to_six( low, high );
+//     boost::variate_generator< RNGType, boost::uniform_int<> >
+//                   dice(rng, one_to_six);
+//
+//         int n  = dice();
+//     return n;
+
+	////////1///////////
+//	long Diff = high - low;
+//	srand(time(0));
+//
+//	long RNDDDD = rand();
+//
+//	cout<<"GENERATINH RANDOM:"<<RNDDDD<<endl;
+//	long RandNum = low + (long) (RNDDDD % Diff);
+//	return RandNum;
 }
-unsigned long LongRandom() {
 
-	unsigned char MyBytes[4];
-	unsigned long MyNumber = 0;
-	unsigned char * ptr = (unsigned char *) &MyNumber;
-
-	MyBytes[0] = rand() % 256; //0-255
-	MyBytes[1] = rand() % 256; //256 - 65535
-	MyBytes[2] = rand() % 256; //65535 -
-	MyBytes[3] = rand() % 256; //16777216
-
-	memcpy(ptr + 0, &MyBytes[0], 1);
-	memcpy(ptr + 1, &MyBytes[1], 1);
-	memcpy(ptr + 2, &MyBytes[2], 1);
-	memcpy(ptr + 3, &MyBytes[3], 1);
-
-	return (MyNumber);
-}
 string RemoveCharFromString(char c, string str) {
 	//cout <<endl<<"Data:"<<str.length()<<str<<endl;
 	str.erase(std::remove(str.begin(), str.end(), c), str.end());
@@ -371,6 +385,7 @@ void GenerateReads(string chr, int ReadsNumber, int ReadLength,
 	//    puts( "File successfully deleted" );
 	///
 	//cout<<endl<<"CCCCLENxxxxxxxxkjhkewldjlkejflkewfj"<<endl;;
+
 	int overlappinglen = 0;
 	//OverlappingRegion : 2,3,5,7,4=2bp+ 3space+5bp+7sp+4bp
 	for (int i = 0; i < RegionNumber; i++) {
