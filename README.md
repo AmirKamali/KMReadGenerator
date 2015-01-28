@@ -11,16 +11,26 @@ HOW TO USE ?
 
 -o: output file address(required)
 
+-of: output file format[default =fasta] (optional)
+	arguments :
+	fasta: FastA format
+	fastq: FastQ format
+	pair: paired end reads 
+
 -l: Length of generated reads.[default =100] (optional)
 	length should be 10+ 
 	
 -n: number of generated reads[default =10]  (optional)
 	number should be 1+
 	
+-rq: Reads Quality [default = "~"] (optional)
+	 if readquality is one character, program will generate reads with the same quality for all nucleotides (for AATG and quality I,  quality will be IIII)
+	 if read quality has same length as the read, program will use it for generating quality 
+	
 -chr Specific chromosome to generate random reads from
 
 -vpt:Variation Pattern [default ="s1"] (optional)
-	s=substitution , i=insertion , d=deletion, n=blank
+	s=substitution , i=insertion , d=deletion, b=blank(without any change)
 	how to use use: variation+length : s5 = 5 substituon
 	sample variation pattern: "s1-b5-d1-b3-i4" 
 

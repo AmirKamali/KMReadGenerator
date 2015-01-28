@@ -130,37 +130,37 @@ void PrintChromosome(string chr, long Boundry[], string FAddress) {
 unsigned long LongRandom(long low, long high) {
 
 
-	 typedef boost::uniform_real<> NumberDistribution;
-	  typedef boost::mt19937 RandomNumberGenerator;
-	  typedef boost::variate_generator<RandomNumberGenerator&,
-	                                   NumberDistribution> Generator;
-	  NumberDistribution distribution(low, high);
-	    RandomNumberGenerator generator;
-	    Generator numberGenerator(generator, distribution);
-	    generator.seed(std::time(0)); // seed with the current time
+	typedef boost::uniform_real<> NumberDistribution;
+	typedef boost::mt19937 RandomNumberGenerator;
+	typedef boost::variate_generator<RandomNumberGenerator&,
+			NumberDistribution> Generator;
+	NumberDistribution distribution(low, high);
+	RandomNumberGenerator generator;
+	Generator numberGenerator(generator, distribution);
+	generator.seed(std::time(0)); // seed with the current time
 
-	    long val= numberGenerator() ;
-	    return val;
+	long val= numberGenerator() ;
+	return val;
 	////2///////////
-//    typedef boost::mt19937 RNGType;
-//
-//    RNGType rng( time(0)*time(0)%50 *time(0) );
-//     boost::uniform_int<> one_to_six( low, high );
-//     boost::variate_generator< RNGType, boost::uniform_int<> >
-//                   dice(rng, one_to_six);
-//
-//         int n  = dice();
-//     return n;
+	//    typedef boost::mt19937 RNGType;
+	//
+	//    RNGType rng( time(0)*time(0)%50 *time(0) );
+	//     boost::uniform_int<> one_to_six( low, high );
+	//     boost::variate_generator< RNGType, boost::uniform_int<> >
+	//                   dice(rng, one_to_six);
+	//
+	//         int n  = dice();
+	//     return n;
 
 	////////1///////////
-//	long Diff = high - low;
-//	srand(time(0));
-//
-//	long RNDDDD = rand();
-//
-//	cout<<"GENERATINH RANDOM:"<<RNDDDD<<endl;
-//	long RandNum = low + (long) (RNDDDD % Diff);
-//	return RandNum;
+	//	long Diff = high - low;
+	//	srand(time(0));
+	//
+	//	long RNDDDD = rand();
+	//
+	//	cout<<"GENERATINH RANDOM:"<<RNDDDD<<endl;
+	//	long RandNum = low + (long) (RNDDDD % Diff);
+	//	return RandNum;
 }
 
 string RemoveCharFromString(char c, string str) {
@@ -243,33 +243,55 @@ VariantType GetVariantType(char c)
 		return VariantTypeSubstitution;
 	}
 	else if (c=='d')
-		{
-			return VariantTypeDeletation;
-		}
+	{
+		return VariantTypeDeletation;
+	}
 	else if (c=='i')
-		{
-			return VariantTypeInsertion;
-		}
+	{
+		return VariantTypeInsertion;
+	}
 	else
 		return VariantTypeNone;
 }
+string GenerateQualityForRead(string Read,string Quality)
+{
+
+	if (Quality.length()==0)
+	{
+		Quality="~";
+	}
+	if (Quality.length()==Read.length())
+	{
+		return Quality;
+	}
+	else
+	{
+		string QualityStr="";
+		for (int i=0;i<Read.length();i++)
+		{
+			QualityStr+=Quality[0];
+		}
+		return QualityStr;
+	}
+
+}
 void GenerateOverlappedReads_ConstantSize(string chr, int TotalReads,
-		int Length, long startindex, long endindex, long CenterIndex
+		int Length,string ReadQuality, long startindex, long endindex, long CenterIndex
 		, int VariantPercentage, string* OverLapAndSpaceRegion,
-		int RegionNumber, string FAddress, string output, bool isDebug) {
+		int RegionNumber, string FAddress, string output,string outputformat, bool isDebug) {
 	int overlapsize = 0;
 	//OverlappingRegion : b=blank s=substution i=insertion d=deletion
 	for (int i = 0; i < RegionNumber; i++) {
 		string str= OverLapAndSpaceRegion[i];
 
-				str=str.substr(1,str.length()-1);
-				//cout<<"CCCCLEN"<<str<<endl;;
-				overlapsize += stoi(str);
+		str=str.substr(1,str.length()-1);
+		//cout<<"CCCCLEN"<<str<<endl;;
+		overlapsize += stoi(str);
 
 	}
 
 	//cout << "Generating Region is :" << startindex << "-" << endindex
-		//	<< "center is:" << CenterIndex << "OVERLAP SIZE:"<<overlapsize<< endl;
+	//	<< "center is:" << CenterIndex << "OVERLAP SIZE:"<<overlapsize<< endl;
 	string ReadRegion = ReadPosition(chr, startindex, endindex, FAddress);
 
 	ReadRegion = RemoveCharFromString('\n', ReadRegion);
@@ -326,7 +348,7 @@ void GenerateOverlappedReads_ConstantSize(string chr, int TotalReads,
 	}
 	else
 		cout << "Variation: None" << endl;
-cout<<"MUTATION REGION:"<<ReadRegion_Mu<<endl;
+	cout<<"MUTATION REGION:"<<ReadRegion_Mu<<endl;
 	int FramesNumber = Length - overlapsize;
 	cout << "Frame number:" << FramesNumber << " Total Reads:" << TotalReads
 			<< endl;
@@ -348,24 +370,58 @@ cout<<"MUTATION REGION:"<<ReadRegion_Mu<<endl;
 	int read_start = 0;
 	int read_end = 0;
 	cout << "Steps::" << Steps << endl;
-	for (int i = 0; i < TotalReads; i++) {
+	cout<<"Outputformat :"<<outputformat<<endl;
+	if (outputformat.compare("fasta")==0)
+	{
+		for (int i = 0; i < TotalReads; i++) {
 
-		read_end += Length;
-		outputFile << ">" << "Read" << Iteration++ << "." << read_start << "."
-				<< read_end << endl;
-		string ReadData = "";
-		if (NumberOfMutatedReads-- > 0) {
-			//cout<<"Applying mutation"<<endl;
-			ReadData = ReadRegion_Mu.substr(read_start, Length);
-		} else {
-			ReadData = ReadRegion.substr(read_start, Length);
+			read_end += Length;
+			outputFile << ">" << "Read" << Iteration++ << "." << read_start << "."
+					<< read_end << endl;
+			string ReadData = "";
+			if (NumberOfMutatedReads-- > 0) {
+				//cout<<"Applying mutation"<<endl;
+				ReadData = ReadRegion_Mu.substr(read_start, Length);
+			} else {
+				ReadData = ReadRegion.substr(read_start, Length);
 
+			}
+
+			cout << "Generating Read..." << ReadData << endl;
+
+			outputFile << ReadData << endl;
+			read_start += Steps;
 		}
+	}
+	else if (outputformat.compare("fastq")==0)
+	{
+		cout<<"is fastq with quality" <<ReadQuality<< endl;
+		for (int i = 0; i < TotalReads; i++) {
 
-		cout << "Generating Read..." << ReadData << endl;
+					read_end += Length;
+					outputFile << "@" << "Read_" << Iteration++ << "." << read_start << "."
+							<< read_end << endl;
+					string ReadData = "";
+					if (NumberOfMutatedReads-- > 0) {
+						//cout<<"Applying mutation"<<endl;
+						ReadData = ReadRegion_Mu.substr(read_start, Length);
+					} else {
+						ReadData = ReadRegion.substr(read_start, Length);
 
-		outputFile << ReadData << endl;
-		read_start += Steps;
+					}
+
+					cout << "Generating Read..." << ReadData << endl;
+
+					outputFile << ReadData << endl;
+					outputFile << "+" << endl;
+					string Quality=GenerateQualityForRead(ReadData,ReadQuality);
+					outputFile << Quality << endl;
+					read_start += Steps;
+				}
+	}
+	else if (outputformat.compare("pair")==0)
+	{
+
 	}
 
 	outputFile.close();
@@ -373,10 +429,10 @@ cout<<"MUTATION REGION:"<<ReadRegion_Mu<<endl;
 }
 
 //Read Length = 0 means Random length
-void GenerateReads(string chr, int ReadsNumber, int ReadLength,
-		 int VariantPercentage, string FAddress,
+void GenerateReads(string chr, int ReadsNumber, int ReadLength,string ReadQuality,
+		int VariantPercentage, string FAddress,
 		bool Overlap, string* OverLapAndSpaceRegion, int RegionNumber,
-		string output, bool IsDebugMode) {
+		string output,string outputformat, bool IsDebugMode) {
 	///REMOVE INDEX FILE FOR TEST
 	//string IndexAddress=FAddress+".kmdx";
 	//if( remove( IndexAddress.c_str() ) != 0 )
@@ -408,14 +464,14 @@ void GenerateReads(string chr, int ReadsNumber, int ReadLength,
 	//Check Space for Randoms
 	if (ReadLength == 0 && Pos_end - Pos_start < ReadLength * 2) {
 		cout
-				<< "Not enough space for generating random reads. For random reads minimum length of the reference should be 2*Read maximum length"
-				<< endl;
+		<< "Not enough space for generating random reads. For random reads minimum length of the reference should be 2*Read maximum length"
+		<< endl;
 		return;
 	}
 	if (Pos_end - Pos_start < 2 * ReadLength + 1) {
 		cout
-				<< "Not enough space for generating reads. For generating random reads "
-				<< endl;
+		<< "Not enough space for generating reads. For generating random reads "
+		<< endl;
 		return;
 	}
 
@@ -424,7 +480,7 @@ void GenerateReads(string chr, int ReadsNumber, int ReadLength,
 		MaxReadLength = ReadLength_MaxRandom;
 
 	if (ReadLength == 0)	//Not same size reads
-			{
+	{
 		//GenerateOverlappedReads_RandomSize(ReadsNumber,CenterIndex,chr,FAddress);
 	} else	//Reads with same size
 	{
@@ -447,10 +503,10 @@ void GenerateReads(string chr, int ReadsNumber, int ReadLength,
 			}
 		}
 
-		GenerateOverlappedReads_ConstantSize(chr, ReadsNumber, ReadLength,
+		GenerateOverlappedReads_ConstantSize(chr, ReadsNumber, ReadLength,ReadQuality,
 				CenterIndex - ReadLength, CenterIndex + ReadLength + 2,
 				CenterIndex, VariantPercentage, OverLapAndSpaceRegion,
-				RegionNumber, FAddress, output, IsDebugMode);
+				RegionNumber, FAddress, output,outputformat, IsDebugMode);
 	}
 
 }

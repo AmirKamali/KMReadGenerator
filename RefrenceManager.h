@@ -9,5 +9,7 @@ enum VariantType
 };
 long* GetReferenceBoundry(string chr,string FAddress);
 void PrintChromosome(string chr, long Boundry[], string FAddress);
-void GenerateReads(string chr,int ReadsNumber,int ReadLength,int VariantPercentage,
-		string FAddress,bool Overlap,string* OverLapAndSpaceRegion,int RegionNumber,string output,bool IsDebugMode);
+void GenerateReads(string chr, int ReadsNumber, int ReadLength,string ReadQuality,
+		 int VariantPercentage, string FAddress,
+		bool Overlap, string* OverLapAndSpaceRegion, int RegionNumber,
+		string output,string outputformat, bool IsDebugMode);

@@ -25,6 +25,8 @@ void ReadKeys(int argc, char* argv[])
 	string RefAdr="";
 	string Output="";
 	string Chr="chrM";
+	string ReadQuality="h";
+	string OutputFormat="fasta";
 	int ReadsNum=10;
 	bool IsDebugMode=false;
 	string SampleVariationPattern[1]={"s1"};
@@ -58,6 +60,11 @@ void ReadKeys(int argc, char* argv[])
 	               	     Output = argv[i + 1];
 
 	               	}
+	                else if (strcmp(argv[i] , "-of")==0)// Outputformat
+	                {
+	               	     OutputFormat = argv[i + 1];
+
+	               	}
 	                else if (strcmp(argv[i] , "-chr")==0)
 	                {
 	               	     Chr = argv[i + 1];
@@ -69,6 +76,13 @@ void ReadKeys(int argc, char* argv[])
 	               	     IsDebugMode = stoi(argv[i + 1]);
 
 	               	}
+	                else if (strcmp(argv[i] , "-rq")==0)
+	                {
+
+	               	     ReadQuality = argv[i + 1];
+
+	               	}
+
 	                else if (strcmp(argv[i] , "-vp")==0)
 	             	 {
 	                	VariationPercentage =stoi( argv[i + 1]);
@@ -140,16 +154,19 @@ void ReadKeys(int argc, char* argv[])
 	 //int RegionNumber,
 	 //string output,
 	 //bool IsDebugMode);
+	 cout <<"READ QUALITY:"<<ReadQuality<<endl;
 	 GenerateReads(
 			 Chr,
 			 ReadsNum,
 			 ReadsLength,
+			 ReadQuality,
 			 VariationPercentage,
 			 RefAdr,
 			 overlap,
 			 OverLapAndSpaceRegion,
 			 RegionNumber,
 			 Output,
+			 OutputFormat,
 			 IsDebugMode);
 }
 
