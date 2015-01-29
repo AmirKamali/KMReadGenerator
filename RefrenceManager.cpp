@@ -13,7 +13,7 @@ using namespace std;
 #if !defined(ARRAY_SIZE)
 #define ARRAY_SIZE(x) (sizeof((x)) / sizeof((x)[0]))
 #endif
-
+const int PAIRED_READ_SPACE=50;//50 bp + 1 \n
 string GetFileDirectory(string FAddress) {
 	return FAddress.substr(0, FAddress.find_last_of("\\/")) + "/";
 }
@@ -275,11 +275,37 @@ string GenerateQualityForRead(string Read,string Quality)
 	}
 
 }
+string ReverseComplement(string Read)
+{
+	string output="";
+	for (int i=Read.length()-1;i>=0;i--)
+	{
+		if (Read[i]=='a')
+			output+="t";
+		else if (Read[i]=='A')
+			output+="T";
+		else if (Read[i]=='t')
+			output+="a";
+		else if (Read[i]=='T')
+			output+="A";
+		else if (Read[i]=='c')
+			output+="g";
+		else if (Read[i]=='C')
+			output+="G";
+		else if (Read[i]=='g')
+			output+="c";
+		else if (Read[i]=='G')
+			output+="C";
+	}
+	return output;
+}
 void GenerateOverlappedReads_ConstantSize(string chr, int TotalReads,
 		int Length,string ReadQuality, long startindex, long endindex, long CenterIndex
 		, int VariantPercentage, string* OverLapAndSpaceRegion,
 		int RegionNumber, string FAddress, string output,string outputformat, bool isDebug) {
 	int overlapsize = 0;
+	string output_paired=output;
+
 	//OverlappingRegion : b=blank s=substution i=insertion d=deletion
 	for (int i = 0; i < RegionNumber; i++) {
 		string str= OverLapAndSpaceRegion[i];
@@ -292,7 +318,24 @@ void GenerateOverlappedReads_ConstantSize(string chr, int TotalReads,
 
 	//cout << "Generating Region is :" << startindex << "-" << endindex
 	//	<< "center is:" << CenterIndex << "OVERLAP SIZE:"<<overlapsize<< endl;
-	string ReadRegion = ReadPosition(chr, startindex, endindex, FAddress);
+	string ReadRegion="";
+	if (outputformat.compare("pair")==0 || outputformat.compare("pair-mu")==0)
+	{
+		ReadRegion= ReadPosition(chr, startindex, endindex+PAIRED_READ_SPACE+Length, FAddress);
+		for (int i=output.length()-1;i>=0;i--)
+		{
+			if (output[i]=='.')
+			{
+				output=output.insert(i,"_1");
+				output_paired=output_paired.insert(i,"_2");
+				break;
+			}
+		}
+	}
+	else
+	{
+		ReadRegion= ReadPosition(chr, startindex, endindex, FAddress);
+	}
 
 	ReadRegion = RemoveCharFromString('\n', ReadRegion);
 	cout<<"READ REGION:"<<ReadRegion<<endl;
@@ -327,19 +370,39 @@ void GenerateOverlappedReads_ConstantSize(string chr, int TotalReads,
 
 				//cout<<"EXEC: ITER:"<<RegionIterator<< "Index:"<< CurrentRegionIndex<<"Value:"<<CurrentRegionValue <<endl;
 				if (CurrentVariation == VariantTypeSubstitution) {
-
 					char c = FindVariant(ReadRegion_Mu[i]);
 					//cout <<"Variant: Substitution at"<<Length-1<< " Original:"<<ReadRegion_Mu[Length-1]<<" New value:" <<c<<endl;
 					ReadRegion_Mu[i] = c;
+
+					//Add to paired end
+					if (outputformat.compare("pair-mu")==0)
+					{
+						char c = FindVariant(ReadRegion_Mu[i+PAIRED_READ_SPACE+Length]);
+						ReadRegion_Mu[i+PAIRED_READ_SPACE+Length] = c;
+					}
+					////
 				} else if (CurrentVariation == VariantTypeInsertion) {
 					char var_c = FindVariant(ReadRegion_Mu[i]);
 					string var_str = "";
 					var_str.insert(0, 1, var_c);
 					//cout<<"Variant: Insert "<<var_str<<endl;
 					ReadRegion_Mu.insert(i, var_str);
+					//Add to paired end
+					if (outputformat.compare("pair-mu")==0)
+					{
+						var_c = FindVariant(ReadRegion_Mu[i+PAIRED_READ_SPACE+Length]);
+						string var_str = "";
+						var_str.insert(0, 1, var_c);
+						ReadRegion_Mu.insert(i+PAIRED_READ_SPACE+Length, var_str);
+					}
+					////
 				} else if (CurrentVariation == VariantTypeDeletation) {
 					//cout <<"Deletion selected"<<endl;
 					ReadRegion_Mu.erase(i);
+					if (outputformat.compare("pair-mu")==0)
+					{
+						ReadRegion_Mu.erase(i+PAIRED_READ_SPACE+Length);
+					}
 				}
 			}
 			CurrentRegionIndex++;
@@ -359,6 +422,7 @@ void GenerateOverlappedReads_ConstantSize(string chr, int TotalReads,
 	cout << "Frame numbers:" << FramesNumber << endl;
 
 	ofstream outputFile(output);
+
 	if (isDebug) {
 		outputFile << ReadRegion << endl;
 		outputFile << ReadRegion_Mu << endl << endl;
@@ -398,33 +462,77 @@ void GenerateOverlappedReads_ConstantSize(string chr, int TotalReads,
 		cout<<"is fastq with quality" <<ReadQuality<< endl;
 		for (int i = 0; i < TotalReads; i++) {
 
-					read_end += Length;
-					outputFile << "@" << "Read_" << Iteration++ << "." << read_start << "."
-							<< read_end << endl;
-					string ReadData = "";
-					if (NumberOfMutatedReads-- > 0) {
-						//cout<<"Applying mutation"<<endl;
-						ReadData = ReadRegion_Mu.substr(read_start, Length);
-					} else {
-						ReadData = ReadRegion.substr(read_start, Length);
+			read_end += Length;
+			outputFile << "@" << "Read_" << Iteration++ << "." << read_start << "."
+					<< read_end << endl;
+			string ReadData = "";
+			if (NumberOfMutatedReads-- > 0) {
+				//cout<<"Applying mutation"<<endl;
+				ReadData = ReadRegion_Mu.substr(read_start, Length);
+			} else {
+				ReadData = ReadRegion.substr(read_start, Length);
 
-					}
+			}
 
-					cout << "Generating Read..." << ReadData << endl;
+			cout << "Generating Read..." << ReadData << endl;
 
-					outputFile << ReadData << endl;
-					outputFile << "+" << endl;
-					string Quality=GenerateQualityForRead(ReadData,ReadQuality);
-					outputFile << Quality << endl;
-					read_start += Steps;
-				}
+			outputFile << ReadData << endl;
+			outputFile << "+" << endl;
+			string Quality=GenerateQualityForRead(ReadData,ReadQuality);
+			outputFile << Quality << endl;
+			read_start += Steps;
+		}
 	}
-	else if (outputformat.compare("pair")==0)
+	else if (outputformat.compare("pair")==0 || outputformat.compare("pair-mu")==0)
 	{
 
+		ofstream outputFile2(output_paired);
+
+		cout<<"is fastq with quality" <<ReadQuality<< endl;
+		for (int i = 0; i < TotalReads; i++) {
+			read_end += Length;
+
+			outputFile << "@" << "Read_" << Iteration << "." << read_start << "."
+					<< read_end << endl;
+
+			outputFile2 << "@" << "Read_" << Iteration++ << "." << read_start << "."
+					<< read_end << endl;
+
+
+			string ReadData = "";
+			string ReadData_paired = "";
+			if (NumberOfMutatedReads-- > 0) {
+				//cout<<"Applying mutation"<<endl;
+				ReadData = ReadRegion_Mu.substr(read_start, Length);
+				ReadData_paired=ReadRegion_Mu.substr(read_start+Length+PAIRED_READ_SPACE, Length);
+				//cout<<"ORG Start :"<<read_start<<"END:"<<read_start+Length<<endl;
+				//cout<<"MUT Start :"<<read_start+Length+PAIRED_READ_SPACE<<"END:"<<read_start+Length+PAIRED_READ_SPACE+Length<<endl;
+			} else {
+				ReadData = ReadRegion.substr(read_start, Length);
+				ReadData_paired=ReadRegion.substr(read_start+Length+PAIRED_READ_SPACE, Length);
+			}
+
+			cout << "Generating Read..." << ReadData << endl;
+
+			outputFile << ReadData << endl;
+
+			//outputFile2<<ReadData_paired<<endl;
+			ReadData_paired=ReverseComplement(ReadData_paired);
+			outputFile2<<ReadData_paired<<endl;
+
+			outputFile << "+" << endl;
+			outputFile2 << "+" << endl;
+
+			string Quality=GenerateQualityForRead(ReadData,ReadQuality);
+			outputFile << Quality << endl;
+			outputFile2 << Quality << endl;
+			read_start += Steps;
+		}
+		outputFile2.close();
 	}
 
 	outputFile.close();
+
 
 }
 
@@ -491,8 +599,11 @@ void GenerateReads(string chr, int ReadsNumber, int ReadLength,string ReadQualit
 			cout << endl << endl << "Randomm Center Number:" << CenterIndex	<< endl;
 
 			int PotentialStartPos = CenterIndex - ReadLength / 2;
+			int extraspace=0;
+			if (outputformat.compare("pair")==0)
+				extraspace=PAIRED_READ_SPACE+ReadLength;
 			string ReadRegion = ReadPosition(chr, PotentialStartPos,
-					PotentialStartPos + ReadLength, FAddress);
+					PotentialStartPos + ReadLength+extraspace, FAddress);
 			if (ReadRegion[0] == 'N'
 					|| ReadRegion[ReadRegion.length() - 1] == 'N') {
 				cout << "Un acceptable region :" << ReadRegion << " PosStart:"

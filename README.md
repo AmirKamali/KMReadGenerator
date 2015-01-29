@@ -16,6 +16,7 @@ HOW TO USE ?
 	fasta: FastA format
 	fastq: FastQ format
 	pair: paired end reads 
+	pair-mu : pair with having same mutated pattern
 
 -l: Length of generated reads.[default =100] (optional)
 	length should be 10+ 
@@ -23,7 +24,7 @@ HOW TO USE ?
 -n: number of generated reads[default =10]  (optional)
 	number should be 1+
 	
--rq: Reads Quality [default = "~"] (optional)
+-rq: Reads Quality [default = "i"] (optional)
 	 if readquality is one character, program will generate reads with the same quality for all nucleotides (for AATG and quality I,  quality will be IIII)
 	 if read quality has same length as the read, program will use it for generating quality 
 	
