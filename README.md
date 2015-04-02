@@ -20,7 +20,9 @@ HOW TO USE ?
 
 -l: Length of generated reads.[default =100] (optional)
 	length should be 10+ 
-	
+
+-pfx: PRefix for read names [default: "Read_"] (optional)
+
 -n: number of generated reads[default =10]  (optional)
 	number should be 1+
 	

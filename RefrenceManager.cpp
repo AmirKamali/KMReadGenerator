@@ -30,6 +30,19 @@ inline bool FileExist(const std::string& name) {
 		// If the file was found, then file is non-0.
 		return true;     // The file was found.
 }
+int CalculatePatternLength(string* Patterns,int PatternNumber)
+{
+	int PatternLength=0;
+	for (int i = 0; i < PatternNumber; i++) {
+		string str= Patterns[i];
+		if (str[0]!='l'&&str[0]!='r'&&str[0]!='c')
+		{
+			str=str.substr(1,str.length()-1);
+			PatternLength += stoi(str);
+		}
+	}
+	return PatternLength;
+}
 bool GenerateRefrenceIndex(string FAddress) {
 	string IndexFileAddress = FAddress + ".kmdx";
 	if (!FileExist(FAddress)) {
@@ -225,7 +238,7 @@ int CountWhiteSpace(string str) {
 	return sum;
 }
 char FindVariant(char c) {
-	//return 'X';
+	return 'X';
 	if (c == 'A' || c == 'a')
 		return 'C';
 	else if (c == 'T' || c == 't')
@@ -296,25 +309,19 @@ string ReverseComplement(string Read)
 			output+="c";
 		else if (Read[i]=='G')
 			output+="C";
+		else
+			output+=Read[i];
 	}
 	return output;
 }
-void GenerateOverlappedReads_ConstantSize(string chr, int TotalReads,
+void GenerateOverlappedReads_ConstantSize(string prefix,string chr, int TotalReads,
 		int Length,string ReadQuality, long startindex, long endindex, long CenterIndex
 		, int VariantPercentage, string* OverLapAndSpaceRegion,
 		int RegionNumber, string FAddress, string output,string outputformat, bool isDebug) {
-	int overlapsize = 0;
+	int overlapsize = CalculatePatternLength(OverLapAndSpaceRegion,RegionNumber);
 	string output_paired=output;
 
 	//OverlappingRegion : b=blank s=substution i=insertion d=deletion
-	for (int i = 0; i < RegionNumber; i++) {
-		string str= OverLapAndSpaceRegion[i];
-
-		str=str.substr(1,str.length()-1);
-		//cout<<"CCCCLEN"<<str<<endl;;
-		overlapsize += stoi(str);
-
-	}
 
 	//cout << "Generating Region is :" << startindex << "-" << endindex
 	//	<< "center is:" << CenterIndex << "OVERLAP SIZE:"<<overlapsize<< endl;
@@ -440,7 +447,7 @@ void GenerateOverlappedReads_ConstantSize(string chr, int TotalReads,
 		for (int i = 0; i < TotalReads; i++) {
 
 			read_end += Length;
-			outputFile << ">" << "Read" << Iteration++ << "." << read_start << "."
+			outputFile << ">" << prefix<< Iteration++ << "." << read_start << "."
 					<< read_end << endl;
 			string ReadData = "";
 			if (NumberOfMutatedReads-- > 0) {
@@ -463,7 +470,7 @@ void GenerateOverlappedReads_ConstantSize(string chr, int TotalReads,
 		for (int i = 0; i < TotalReads; i++) {
 
 			read_end += Length;
-			outputFile << "@" << "Read_" << Iteration++ << "." << read_start << "."
+			outputFile << "@" <<prefix << Iteration++ << "." << read_start << "."
 					<< read_end << endl;
 			string ReadData = "";
 			if (NumberOfMutatedReads-- > 0) {
@@ -492,10 +499,10 @@ void GenerateOverlappedReads_ConstantSize(string chr, int TotalReads,
 		for (int i = 0; i < TotalReads; i++) {
 			read_end += Length;
 
-			outputFile << "@" << "Read_" << Iteration << "." << read_start << "."
+			outputFile << "@" << prefix<< Iteration << "." << read_start << "."
 					<< read_end << endl;
 
-			outputFile2 << "@" << "Read_" << Iteration++ << "." << read_start << "."
+			outputFile2 << "@" << prefix<< Iteration++ << "." << read_start << "."
 					<< read_end << endl;
 
 
@@ -535,33 +542,247 @@ void GenerateOverlappedReads_ConstantSize(string chr, int TotalReads,
 
 
 }
+long lastrandom=0;
+string* GenerateNonOverLappingRandomSingleRead(string* Patterns,int RegionNumber,string chr,long PosStart,long PosEnd,int Length,string outputformat,string FAddress)
+{
+	///Select Read
+	string ReadRegion="";
+	while (true) {
+		long CenterIndex=0;
+		while(true)
+		{
+		long newrandom = LongRandom(PosStart + Length / 2,
+				PosEnd - Length / 2);
+			if (newrandom!=lastrandom)
+			{
+				lastrandom=newrandom;
+				CenterIndex=newrandom;
+				break;
+			}
+		}
 
+		int PotentialStartPos = CenterIndex - Length / 2;
+		int extraspace=0;
+		if (outputformat.compare("pair")==0 || outputformat.compare("pair-mu")==0)
+			extraspace=PAIRED_READ_SPACE+Length;
+		ReadRegion = ReadPosition(chr, PotentialStartPos,
+				PotentialStartPos + Length+extraspace+Length*6 /50, FAddress);
+		ReadRegion=RemoveCharFromString('\n', ReadRegion);
+		ReadRegion=ReadRegion.substr(0,Length+extraspace);
+		if (ReadRegion[0] == 'N'
+				|| ReadRegion[ReadRegion.length() - 1] == 'N') {
+			cout << "Un acceptable region :" << ReadRegion << " PosStart:"
+					<< PotentialStartPos << endl;
+		} else {
+			cout << "region found :" << ReadRegion << endl;
+			break;
+		}
+	}
+
+	//Apply Mutation
+
+	ReadRegion=RemoveCharFromString('\n', ReadRegion);
+	string ReadRegion_Mu = RemoveCharFromString('\n', ReadRegion);
+	int CC = 0;
+	int FirstPatternIndex=0;
+	int RegionIterator = 0;
+	string CurrentRegionValue = Patterns[0];
+	int ApplyMutationDirection=0;  ///0 =Left to right, 1=Right to left , 2=Center
+	int StartIndex=0,EndIndex=Length;
+
+	if (CurrentRegionValue[0]=='l' )
+	{
+		ApplyMutationDirection=0;
+		FirstPatternIndex=1;
+		CurrentRegionValue=Patterns[FirstPatternIndex];
+		StartIndex=0;
+		EndIndex=Length;
+	}
+	else if (CurrentRegionValue[0]=='r' )
+	{
+		ApplyMutationDirection=1;
+		FirstPatternIndex=1;
+		CurrentRegionValue=Patterns[FirstPatternIndex];
+	}
+	else if (CurrentRegionValue[0]=='c' )
+	{
+		ApplyMutationDirection=2;
+		CurrentRegionValue=Patterns[FirstPatternIndex];
+
+	}
+
+	///////Calculate Pattern Length
+	int PatternLength=CalculatePatternLength(Patterns,RegionNumber);
+	if (ApplyMutationDirection==1 )//Right to left
+	{
+		StartIndex=Length-PatternLength;
+	}
+	else if (ApplyMutationDirection==2 )//Center
+	{
+		StartIndex=Length/2-PatternLength/2-1;
+	}
+	else
+	{
+		StartIndex=0;
+	}
+
+	EndIndex=StartIndex+Length;
+	if (EndIndex>StartIndex+PatternLength)
+		EndIndex=StartIndex+PatternLength;
+
+	cout <<"Pattern Length:"<<PatternLength<<" With Direction:"<<ApplyMutationDirection<<endl;
+	cout <<"Start Index:"<<StartIndex<<" end index:"<<EndIndex<<"Length:"<<Length<<endl;
+
+	VariantType CurrentVariation=GetVariantType(CurrentRegionValue[0]);
+	CurrentRegionValue=CurrentRegionValue.substr(1,CurrentRegionValue.length()-1);
+	int CurrentRegionIndex = 0;
+
+	for (int i = StartIndex; i < EndIndex; i++) {
+		cout <<"i="<<i<<"CC" <<CC<<endl;
+		if (CurrentRegionIndex >=stoi( CurrentRegionValue)) {
+			RegionIterator++;
+			CurrentRegionIndex = 0;
+			CurrentRegionValue = Patterns[RegionIterator];
+			CurrentVariation=GetVariantType(CurrentRegionValue[0]);
+			CurrentRegionValue=CurrentRegionValue.substr(1,CurrentRegionValue.length()-1);
+		}
+		if (CC++ >= PatternLength)
+			break;
+		cout <<"PASS CC"<<CC<<endl;
+		if (CurrentVariation!=VariantTypeNone) {
+
+			//cout<<"EXEC: ITER:"<<RegionIterator<< "Index:"<< CurrentRegionIndex<<"Value:"<<CurrentRegionValue <<endl;
+			if (CurrentVariation == VariantTypeSubstitution) {
+				char c = FindVariant(ReadRegion_Mu[i]);
+				//cout <<"Variant: Substitution at"<<Length-1<< " Original:"<<ReadRegion_Mu[Length-1]<<" New value:" <<c<<endl;
+				ReadRegion_Mu[i] = c;
+
+				//Add to paired end
+				if (outputformat.compare("pair-mu")==0)
+				{
+					char c = FindVariant(ReadRegion_Mu[i+PAIRED_READ_SPACE+Length]);
+					ReadRegion_Mu[i+PAIRED_READ_SPACE+Length] = c;
+				}
+				////
+			} else if (CurrentVariation == VariantTypeInsertion) {
+				char var_c = FindVariant(ReadRegion_Mu[i]);
+				string var_str = "";
+				var_str.insert(0, 1, var_c);
+				//cout<<"Variant: Insert "<<var_str<<endl;
+				ReadRegion_Mu.insert(i, var_str);
+				//Add to paired end
+				if (outputformat.compare("pair-mu")==0)
+				{
+					var_c = FindVariant(ReadRegion_Mu[i+PAIRED_READ_SPACE+Length]);
+					string var_str = "";
+					var_str.insert(0, 1, var_c);
+					ReadRegion_Mu.insert(i+PAIRED_READ_SPACE+Length, var_str);
+				}
+				////
+			} else if (CurrentVariation == VariantTypeDeletation) {
+				//cout <<"Deletion selected"<<endl;
+				ReadRegion_Mu.erase(i);
+				if (outputformat.compare("pair-mu")==0)
+				{
+					ReadRegion_Mu.erase(i+PAIRED_READ_SPACE+Length);
+				}
+			}
+		}
+		CurrentRegionIndex++;
+		//cout <<"With mutations:"<<NumberOfMutatedReads<<endl;
+	}
+	cout<<"Original:"<<ReadRegion<<endl;
+	cout<<"Mutation:"<<ReadRegion_Mu<<endl;
+
+	string Read=ReadRegion_Mu.substr(0,Length);
+	string Read_Pair="";
+	if (outputformat.compare("pair")==0 || outputformat.compare("pair-mu")==0)
+	{
+		Read_Pair=ReadRegion_Mu.substr(ReadRegion_Mu.length()- Length,Length);
+	}
+	string Pair_Rc=ReverseComplement(Read_Pair);;
+	cout <<"READ:"<<Read<<endl;
+	cout <<"PAIR:"<<Read_Pair<<" Revers:"<<Pair_Rc <<endl;
+	Read_Pair=Pair_Rc;
+	string* Res=new string[2];
+	Res[0]=Read;
+	Res[1]=Read_Pair;
+
+
+
+	////////
+	return Res;
+
+}
+void GenerateNonOverlappingRandomReads(string* Patterns,int RegionNumber,string chr,long PosStart,long PosEnd, int TotalReads,
+		int Length,string ReadQuality,int VariantPercentage, string FAddress,
+		string output,string outputformat, bool isDebug)
+{
+
+	int NumberOfVariations= (TotalReads*VariantPercentage)/100;
+	if (TotalReads%VariantPercentage!=0)//rounding up
+		NumberOfVariations++;
+
+
+
+	string output_paired=output;
+
+		//OverlappingRegion : b=blank s=substution i=insertion d=deletion
+
+		//cout << "Generating Region is :" << startindex << "-" << endindex
+		//	<< "center is:" << CenterIndex << "OVERLAP SIZE:"<<overlapsize<< endl;
+		string ReadRegion="";
+		if (outputformat.compare("pair")==0 || outputformat.compare("pair-mu")==0)
+		{
+			for (int i=output.length()-1;i>=0;i--)
+			{
+				if (output[i]=='.')
+				{
+					output=output.insert(i,"_1");
+					output_paired=output_paired.insert(i,"_2");
+					break;
+				}
+			}
+		}
+
+		ofstream outputFile(output);
+		ofstream outputFile_paired(output_paired);
+
+	for (int i=0;i<=TotalReads;i++)
+	{
+		string *res=GenerateNonOverLappingRandomSingleRead( Patterns, RegionNumber, chr, PosStart, PosEnd, Length, outputformat, FAddress);
+		if (NumberOfVariations-->0)
+			res=GenerateNonOverLappingRandomSingleRead( Patterns, RegionNumber, chr, PosStart, PosEnd, Length, outputformat, FAddress);
+		else
+			res=GenerateNonOverLappingRandomSingleRead( Patterns, 0, chr, PosStart, PosEnd, Length, outputformat, FAddress);
+
+		outputFile<<"READ "<<i<<endl;
+		outputFile<<res[0]<<endl;
+		if(outputformat.compare("pair")==0 || outputformat.compare("pair-mu")==0)
+		{
+			outputFile_paired<<"READ "<<i<<endl;
+			outputFile_paired<<res[1]<<endl;
+		}
+	}
+	outputFile.flush();
+	outputFile_paired.flush();
+	outputFile.close();
+	outputFile_paired.close();
+	cout<<"File generated successfully."<<endl;
+
+
+}
 //Read Length = 0 means Random length
-void GenerateReads(string chr, int ReadsNumber, int ReadLength,string ReadQuality,
+void GenerateReads(string prefix,string chr, int ReadsNumber, int ReadLength,string ReadQuality,
 		int VariantPercentage, string FAddress,
 		bool Overlap, string* OverLapAndSpaceRegion, int RegionNumber,
 		string output,string outputformat, bool IsDebugMode) {
-	///REMOVE INDEX FILE FOR TEST
-	//string IndexAddress=FAddress+".kmdx";
-	//if( remove( IndexAddress.c_str() ) != 0 )
-	//    perror( "Error deleting file" );
-	// else
-	//    puts( "File successfully deleted" );
-	///
-	//cout<<endl<<"CCCCLENxxxxxxxxkjhkewldjlkejflkewfj"<<endl;;
 
-	int overlappinglen = 0;
-	//OverlappingRegion : 2,3,5,7,4=2bp+ 3space+5bp+7sp+4bp
-	for (int i = 0; i < RegionNumber; i++) {
-		//cout<<"OK:"<<OverLapAndSpaceRegion[i]<<endl;
-		string str= OverLapAndSpaceRegion[i];
 
-		str=str.substr(1,str.length()-1);
-		//cout<<"CCCCLEN"<<str<<endl;;
-		overlappinglen += stoi(str);
-	}
+	//int overlappinglen = CalculatePatternLength(OverLapAndSpaceRegion,RegionNumber);
 
-	cout << "Overlapping region:" << overlappinglen;
+
+
 	const int ReadLength_MaxRandom = 220;
 	long* Boundries = GetReferenceBoundry(chr, FAddress);
 	long Pos_start = Boundries[0];
@@ -587,37 +808,51 @@ void GenerateReads(string chr, int ReadsNumber, int ReadLength,string ReadQualit
 	if (MaxReadLength == 0)
 		MaxReadLength = ReadLength_MaxRandom;
 
-	if (ReadLength == 0)	//Not same size reads
+	if (Overlap)
 	{
-		//GenerateOverlappedReads_RandomSize(ReadsNumber,CenterIndex,chr,FAddress);
-	} else	//Reads with same size
-	{
-		long CenterIndex = 0;
-		while (true) {
-			CenterIndex = LongRandom(Pos_start + ReadLength / 2,
-					Pos_end - ReadLength / 2);
-			cout << endl << endl << "Randomm Center Number:" << CenterIndex	<< endl;
-
-			int PotentialStartPos = CenterIndex - ReadLength / 2;
-			int extraspace=0;
-			if (outputformat.compare("pair")==0)
-				extraspace=PAIRED_READ_SPACE+ReadLength;
-			string ReadRegion = ReadPosition(chr, PotentialStartPos,
-					PotentialStartPos + ReadLength+extraspace, FAddress);
-			if (ReadRegion[0] == 'N'
-					|| ReadRegion[ReadRegion.length() - 1] == 'N') {
-				cout << "Un acceptable region :" << ReadRegion << " PosStart:"
-						<< PotentialStartPos << endl;
-			} else {
-				cout << "region found :" << ReadRegion << endl;
-				break;
-			}
+		cout<<"Generating Random WITH overlapping Reads..."<<endl;
+		if (ReadLength == 0)	//Not same size reads
+		{
+			//GenerateOverlappedReads_RandomSize(ReadsNumber,CenterIndex,chr,FAddress);
 		}
+		else	//Reads with same size
+		{
+			long CenterIndex = 0;
+			while (true) {
+				CenterIndex = LongRandom(Pos_start + ReadLength / 2,
+						Pos_end - ReadLength / 2);
+				cout << endl << endl << "Randomm Center Number:" << CenterIndex	<< endl;
 
-		GenerateOverlappedReads_ConstantSize(chr, ReadsNumber, ReadLength,ReadQuality,
-				CenterIndex - ReadLength, CenterIndex + ReadLength + 2,
-				CenterIndex, VariantPercentage, OverLapAndSpaceRegion,
-				RegionNumber, FAddress, output,outputformat, IsDebugMode);
+				int PotentialStartPos = CenterIndex - ReadLength / 2;
+				int extraspace=0;
+				if (outputformat.compare("pair")==0)
+					extraspace=PAIRED_READ_SPACE+ReadLength;
+				string ReadRegion = ReadPosition(chr, PotentialStartPos,
+						PotentialStartPos + ReadLength+extraspace, FAddress);
+				ReadRegion=RemoveCharFromString('\n', ReadRegion);
+
+				if (ReadRegion[0] == 'N'|| ReadRegion[ReadRegion.length() - 1] == 'N') {
+					cout << "Un acceptable region :" << ReadRegion << " PosStart:"
+							<< PotentialStartPos << endl;
+				}
+				else {
+					cout << "region found :" << ReadRegion << endl;
+					break;
+				}
+			}
+			GenerateOverlappedReads_ConstantSize(prefix,chr, ReadsNumber, ReadsNumber,ReadQuality,
+					CenterIndex - ReadLength, CenterIndex + ReadLength + 2,
+					CenterIndex, VariantPercentage, OverLapAndSpaceRegion,
+					RegionNumber, FAddress, output,outputformat, IsDebugMode);
+		}
+	}
+	else
+	{
+		cout<<"Generating Random non overlapping Reads..."<< endl;
+		GenerateNonOverlappingRandomReads(OverLapAndSpaceRegion,RegionNumber,chr, Pos_start,Pos_end,  ReadsNumber,
+				ReadLength,ReadQuality,VariantPercentage,  FAddress,
+				output, outputformat,  IsDebugMode);
+
 	}
 
 }

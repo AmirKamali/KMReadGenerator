@@ -27,6 +27,7 @@ void ReadKeys(int argc, char* argv[])
 	string Chr="chrM";
 	string ReadQuality="h";
 	string OutputFormat="fasta";
+	string Prefix="Read_";
 	int ReadsNum=10;
 	bool IsDebugMode=false;
 	string SampleVariationPattern[1]={"s1"};
@@ -40,7 +41,7 @@ void ReadKeys(int argc, char* argv[])
 	 if (argc < 3) { // Check the value of argc. If not enough parameters have been passed, inform user and exit.
 	        std::cout << "Usage is -r <refrence>  -o <output>"<<endl<<endl; // Inform the user of how to use the program
 	    } else { // if we got enough parameters...
-	        std::cout << argv[0];
+
 	        for (int i = 1; i < argc; i+=2) { /* We will iterate over argv[] to get the parameters stored inside.
 	                                          * Note that we're starting on 1 because we don't need to know the
 	                                          * path of the program, which is stored in argv[0] */
@@ -70,6 +71,11 @@ void ReadKeys(int argc, char* argv[])
 	               	     Chr = argv[i + 1];
 
 	               	}
+	                else if (strcmp(argv[i] , "-pfx")==0)
+	                {
+	               	     Prefix = argv[i + 1];
+
+	               	}
 	                else if (strcmp(argv[i] , "-debug")==0)
 	                {
 
@@ -82,7 +88,12 @@ void ReadKeys(int argc, char* argv[])
 	               	     ReadQuality = argv[i + 1];
 
 	               	}
+	                else if (strcmp(argv[i] , "-ol")==0)
+	   	            {
 
+	                	overlap = stoi(argv[i + 1]);
+
+	   	            }
 	                else if (strcmp(argv[i] , "-vp")==0)
 	             	 {
 	                	VariationPercentage =stoi( argv[i + 1]);
@@ -112,8 +123,7 @@ void ReadKeys(int argc, char* argv[])
 	                    }
 	             	 }
 	                else {
-	                    std::cout << "Not enough or invalid arguments, please try again."<<endl;
-	                    std::cout <<"PARAMETERS:"<< argv[i] << " "<<endl;
+	                    std::cout <<"Invalid PARAMETERS:"<< argv[i] << " "<<endl;
 	            }
 
 	        }
@@ -154,8 +164,12 @@ void ReadKeys(int argc, char* argv[])
 	 //int RegionNumber,
 	 //string output,
 	 //bool IsDebugMode);
+	 if (!overlap)
+		 cout<<"NON OVERLAPPP"<<endl;
+
 	 cout <<"READ QUALITY:"<<ReadQuality<<endl;
 	 GenerateReads(
+			 Prefix,
 			 Chr,
 			 ReadsNum,
 			 ReadsLength,
