@@ -74,9 +74,16 @@ bool GenerateRefrenceIndex(string FAddress) {
 				outputFile << line << "\t" << pos;
 				InChromosom = true;
 			} else {
-				outputFile << "\t" << pos - 1 << endl << flush;
-				;
-				InChromosom = false;
+				outputFile << "\t" << pos -1 << endl << flush;
+				if (line.at(0) == '>')
+				{
+					outputFile << line << "\t" << pos;
+					InChromosom=true;
+				}
+				else
+				{
+					InChromosom = false;
+				}
 			}
 		}
 
@@ -92,6 +99,8 @@ bool GenerateRefrenceIndex(string FAddress) {
 	return true;
 }
 long* GetReferenceBoundry(string chr, string FAddress) {
+	cout <<"oooooooooooFinding Chromosom boundry for "<<chr<<endl;
+
 	chr = ">" + chr;
 	bool RefrenceOK = GenerateRefrenceIndex(FAddress);
 	if (!RefrenceOK) {
@@ -108,6 +117,11 @@ long* GetReferenceBoundry(string chr, string FAddress) {
 		if (chr_l.compare(chr) == 0) {
 			break;
 		}
+	}
+	if (chr_l.compare(chr)!=0)
+	{
+		cout <<"Chromosome not found"<<endl;
+		return 0;
 	}
 	file.close();
 	long Res[2];
@@ -129,7 +143,7 @@ void PrintChromosome(string chr, long Boundry[], string FAddress) {
 	string ChrAddr = GetFileDirectory(FAddress) + chr + "."
 			+ GetFileName(FAddress) + ".fa";
 	ofstream outputFile(ChrAddr);
-	cout << "Generating chromosome in range:" << StartIndex << "-" << EndIndex
+	cout << "Generating chromosome:"<<chr<<" in range:" << StartIndex << "-" << EndIndex
 			<< endl;
 	//outputFile<<"<chr21";
 	while (file >> content && file.tellg() <= EndIndex) {
@@ -197,11 +211,11 @@ string RemoveCharFromCharArray(char c, char arr[]) {
 	return Res;
 }
 string ReadPosition(string Chr, int StartIndex, int EndIndex, string FAddr) {
-	cout << "Generating chromosome in range:" << StartIndex << "-" << EndIndex
+	cout << "Generating chromosome"<<Chr<< " in range:" << StartIndex << "-" << EndIndex
 			<< endl;
 	StartIndex += Chr.length() + 2;
 	EndIndex += Chr.length() + 2;
-
+	cout<<"CHR FADDRESS:"<<FAddr<<endl;
 	ifstream file(FAddr);
 	file.seekg(StartIndex, file.beg);
 	file.clear();
@@ -238,7 +252,7 @@ int CountWhiteSpace(string str) {
 	return sum;
 }
 char FindVariant(char c) {
-	return 'X';
+	//return 'X';
 	if (c == 'A' || c == 'a')
 		return 'C';
 	else if (c == 'T' || c == 't')
@@ -318,6 +332,8 @@ void GenerateOverlappedReads_ConstantSize(string prefix,string chr, int TotalRea
 		int Length,string ReadQuality, long startindex, long endindex, long CenterIndex
 		, int VariantPercentage, string* OverLapAndSpaceRegion,
 		int RegionNumber, string FAddress, string output,string outputformat, bool isDebug) {
+
+//cout <<" CHROMOSOM:"<<chr<<endl;
 	int overlapsize = CalculatePatternLength(OverLapAndSpaceRegion,RegionNumber);
 	string output_paired=output;
 
@@ -335,32 +351,36 @@ void GenerateOverlappedReads_ConstantSize(string prefix,string chr, int TotalRea
 			{
 				output=output.insert(i,"_1");
 				output_paired=output_paired.insert(i,"_2");
+				cout <<"OOOO!!!! Replaced"<<endl;
 				break;
 			}
 		}
 	}
 	else
 	{
+		//cout <<"READING chromosome:"<<chr<<endl;
 		ReadRegion= ReadPosition(chr, startindex, endindex, FAddress);
 	}
 
 	ReadRegion = RemoveCharFromString('\n', ReadRegion);
 	cout<<"READ REGION:"<<ReadRegion<<endl;
+	cout <<"OUTPUT1:"<<output<<" PAIR NAME:"<<output_paired<<endl;
 
 	string ReadRegion_Mu = "";
 
 	int NumberOfMutatedReads = 0;
 	if ( OverLapAndSpaceRegion) {
-
+		cout <<"generating Overlapped"<<endl;
 		NumberOfMutatedReads = (TotalReads * VariantPercentage) / 100;
 		ReadRegion_Mu = RemoveCharFromString('\n', ReadRegion);
 		int CC = 0;
 
 		int RegionIterator = 0;
-		string CurrentRegionValue = OverLapAndSpaceRegion[0];
-		VariantType CurrentVariation=GetVariantType(CurrentRegionValue[0]);
-		CurrentRegionValue=CurrentRegionValue.substr(1,CurrentRegionValue.length()-1);
+		string CurrentRegionValue = OverLapAndSpaceRegion[0];//s25
+		VariantType CurrentVariation=GetVariantType(CurrentRegionValue[0]);//s
+		CurrentRegionValue=CurrentRegionValue.substr(1,CurrentRegionValue.length()-1);//25
 		int CurrentRegionIndex = 0;
+		cout <<"LEngth:"<<Length<<" Over lap size:"<<overlapsize<<endl;
 
 		for (int i = Length - overlapsize; i < Length; i++) {
 			if (CurrentRegionIndex >=stoi( CurrentRegionValue)) {
@@ -447,8 +467,8 @@ void GenerateOverlappedReads_ConstantSize(string prefix,string chr, int TotalRea
 		for (int i = 0; i < TotalReads; i++) {
 
 			read_end += Length;
-			outputFile << ">" << prefix<< Iteration++ << "." << read_start << "."
-					<< read_end << endl;
+			outputFile << ">" << prefix<< Iteration++ << "." << startindex+chr.length()+ read_start << "."
+					<<startindex+chr.length()+ read_end << endl;
 			string ReadData = "";
 			if (NumberOfMutatedReads-- > 0) {
 				//cout<<"Applying mutation"<<endl;
@@ -470,8 +490,8 @@ void GenerateOverlappedReads_ConstantSize(string prefix,string chr, int TotalRea
 		for (int i = 0; i < TotalReads; i++) {
 
 			read_end += Length;
-			outputFile << "@" <<prefix << Iteration++ << "." << read_start << "."
-					<< read_end << endl;
+			outputFile << "@" <<prefix << Iteration++ << "." << startindex+chr.length()+read_start << "."
+					<< startindex+chr.length()+read_end << endl;
 			string ReadData = "";
 			if (NumberOfMutatedReads-- > 0) {
 				//cout<<"Applying mutation"<<endl;
@@ -492,18 +512,18 @@ void GenerateOverlappedReads_ConstantSize(string prefix,string chr, int TotalRea
 	}
 	else if (outputformat.compare("pair")==0 || outputformat.compare("pair-mu")==0)
 	{
-
+		cout <<"--------IS PAAAAAIR"<<endl;
 		ofstream outputFile2(output_paired);
 
 		cout<<"is fastq with quality" <<ReadQuality<< endl;
 		for (int i = 0; i < TotalReads; i++) {
 			read_end += Length;
 
-			outputFile << "@" << prefix<< Iteration << "." << read_start << "."
-					<< read_end << endl;
+			outputFile << "@" << prefix<< Iteration << "." << read_start+startindex+chr.length() << "."
+					<< startindex+chr.length()+read_end <<"_1"<< endl;
 
-			outputFile2 << "@" << prefix<< Iteration++ << "." << read_start << "."
-					<< read_end << endl;
+			outputFile2 << "@" << prefix<< Iteration++ << "." << read_start+startindex+chr.length() << "."
+					<< startindex+chr.length()+read_end <<"_2" <<endl;
 
 
 			string ReadData = "";
@@ -840,7 +860,7 @@ void GenerateReads(string prefix,string chr, int ReadsNumber, int ReadLength,str
 					break;
 				}
 			}
-			GenerateOverlappedReads_ConstantSize(prefix,chr, ReadsNumber, ReadsNumber,ReadQuality,
+			GenerateOverlappedReads_ConstantSize(prefix,chr, ReadsNumber, ReadLength,ReadQuality,
 					CenterIndex - ReadLength, CenterIndex + ReadLength + 2,
 					CenterIndex, VariantPercentage, OverLapAndSpaceRegion,
 					RegionNumber, FAddress, output,outputformat, IsDebugMode);

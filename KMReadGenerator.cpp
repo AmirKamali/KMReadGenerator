@@ -167,7 +167,7 @@ void ReadKeys(int argc, char* argv[])
 	 if (!overlap)
 		 cout<<"NON OVERLAPPP"<<endl;
 
-	 cout <<"READ QUALITY:"<<ReadQuality<<endl;
+	// cout <<"READ QUALITY:"<<ReadQuality<<endl;
 	 GenerateReads(
 			 Prefix,
 			 Chr,
@@ -187,5 +187,8 @@ void ReadKeys(int argc, char* argv[])
 int main(int argc, char* argv[]) {
 	cout <<endl<< "Random Read Generator initializing" << endl;
 	ReadKeys(argc,argv);
+	//long int myarray[] = {41256422,41256498};
+	//PrintChromosome("chr1",myarray,"/Users/Amir/Desktop/ref/ucsc.hg19.fasta");
+
 	return 0;
 }
